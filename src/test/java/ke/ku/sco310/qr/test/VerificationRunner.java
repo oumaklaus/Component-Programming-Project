@@ -11,6 +11,7 @@ import ke.ku.sco310.qr.facade.QrAssembly;
 import ke.ku.sco310.qr.render.AsciiRendererBean;
 import ke.ku.sco310.qr.render.PngRendererBean;
 import ke.ku.sco310.qr.render.SvgRendererBean;
+import ke.ku.sco310.qr.tools.ProjectBuilderTest;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -38,7 +39,7 @@ public final class VerificationRunner {
     }
 
     public static void main(String[] args) throws Exception {
-        File evidence = new File(args.length > 0 ? args[0] : "docs/evidence");
+        File evidence = evidenceDirectory(args);
         File work = new File(evidence, "work");
         File gallery = new File(evidence, "gallery");
         work.mkdirs();
@@ -54,6 +55,10 @@ public final class VerificationRunner {
         System.out.println("evidence directory: " + evidence.getAbsolutePath());
 
         EngineReferenceTest.run(harness, tableCsv, capacityCsv);
+        MicroQrReferenceTest.run(harness);
+        ExtensionComponentTest.run(harness);
+        FrontEndTest.run(harness, new File(evidence, "work/frontends"));
+        ProjectBuilderTest.run(harness);
         RendererTest.run(harness, rendererCsv);
         BeanContractTest.run(harness, work);
         AssemblyTest.run(harness, work);
@@ -92,6 +97,19 @@ public final class VerificationRunner {
         if (harness.getFailures() > 0) {
             System.exit(1);
         }
+    }
+
+    static File evidenceDirectory(String[] args) {
+        if (args.length > 0 && !args[0].trim().isEmpty()) {
+            return new File(args[0]);
+        }
+        String environment = System.getenv("QR_EVIDENCE_DIR");
+        if (environment != null && !environment.trim().isEmpty()) {
+            return new File(environment.trim());
+        }
+        String property = System.getProperty("qr.evidence.dir");
+        return new File(property == null || property.trim().isEmpty()
+                ? "docs/evidence" : property.trim());
     }
 
     /**

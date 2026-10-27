@@ -1,15 +1,12 @@
 package ke.ku.sco310.qr.facade;
 
 import ke.ku.sco310.qr.api.EncoderInfo;
+import ke.ku.sco310.qr.api.QrCodeDecoder;
 import ke.ku.sco310.qr.api.QrCodeEncoder;
 import ke.ku.sco310.qr.api.QrCodeRenderer;
+import ke.ku.sco310.qr.api.QrMicroEncoder;
 import ke.ku.sco310.qr.components.OptionalComponentSupport;
-import ke.ku.sco310.qr.components.PureJavaQrEncoderBean;
-import ke.ku.sco310.qr.components.ZxingQrEncoderAdapterBean;
 import ke.ku.sco310.qr.log.AuditLogListenerBean;
-import ke.ku.sco310.qr.render.AsciiRendererBean;
-import ke.ku.sco310.qr.render.PngRendererBean;
-import ke.ku.sco310.qr.render.SvgRendererBean;
 import ke.ku.sco310.qr.store.FileSystemRepositoryBean;
 import ke.ku.sco310.qr.store.QrHistoryBean;
 
@@ -25,6 +22,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceConfigurationError;
+import java.util.ServiceLoader;
 
 /**
  * Component broker and assembler.
@@ -54,7 +53,9 @@ public class ComponentRegistry {
 
     /** Role names used by the profile and by the components table. */
     public static final String ROLE_ENCODER = "encoder";
+    public static final String ROLE_MICRO_ENCODER = "micro-encoder";
     public static final String ROLE_RENDERER = "renderer";
+    public static final String ROLE_DECODER = "decoder";
     public static final String ROLE_REPOSITORY = "repository";
     public static final String ROLE_HISTORY = "history";
     public static final String ROLE_LISTENER = "listener";
@@ -65,38 +66,30 @@ public class ComponentRegistry {
      */
     public List<ComponentDescriptor> listComponents() {
         List<ComponentDescriptor> catalogue = new ArrayList<>();
-
-        catalogue.add(new ComponentDescriptor(ROLE_ENCODER, PureJavaQrEncoderBean.COMPONENT_ID,
-                PureJavaQrEncoderBean.class.getName())
-                .provides("ke.ku.sco310.qr.api.QrCodeEncoder", "java.io.Serializable")
-                .properties("defaultErrorCorrection", "minimumVersion", "maximumVersion",
-                        "boostErrorCorrection", "forcedMaskPattern"));
-
-        ComponentDescriptor zxing = new ComponentDescriptor(ROLE_ENCODER,
-                ZxingQrEncoderAdapterBean.COMPONENT_ID, ZxingQrEncoderAdapterBean.class.getName())
-                .provides("ke.ku.sco310.qr.api.QrCodeEncoder", "java.io.Serializable")
-                .requires("com.google.zxing.qrcode.encoder.Encoder (optional library)")
-                .properties("characterSet", "defaultErrorCorrection");
-        if (!OptionalComponentSupport.isZxingAvailable()) {
-            zxing.unavailable("com.google.zxing.core is not on the class path");
+        for (QrCodeEncoder provider : providers(QrCodeEncoder.class)) {
+            ComponentDescriptor descriptor = descriptor(ROLE_ENCODER, provider.getComponentId(), provider);
+            if (provider.getEncoderInfo().isRequiresOptionalLibrary()) {
+                descriptor.requires("optional third-party encoder library");
+            }
+            if (!OptionalComponentSupport.isZxingAvailable()
+                    && provider.getEncoderInfo().isRequiresOptionalLibrary()) {
+                descriptor.unavailable("com.google.zxing.core is not on the class path");
+            }
+            catalogue.add(descriptor);
         }
-        catalogue.add(zxing);
-
-        catalogue.add(new ComponentDescriptor(ROLE_RENDERER, PngRendererBean.COMPONENT_ID,
-                PngRendererBean.class.getName())
-                .provides("ke.ku.sco310.qr.api.QrCodeRenderer", "java.io.Serializable")
-                .properties("moduleSize", "quietZone", "foregroundColor", "backgroundColor"));
-
-        catalogue.add(new ComponentDescriptor(ROLE_RENDERER, SvgRendererBean.COMPONENT_ID,
-                SvgRendererBean.class.getName())
-                .provides("ke.ku.sco310.qr.api.QrCodeRenderer", "java.io.Serializable")
-                .properties("moduleSize", "quietZone", "foregroundColor", "backgroundColor",
-                        "mergeHorizontalRuns", "physicalWidthMillimetres"));
-
-        catalogue.add(new ComponentDescriptor(ROLE_RENDERER, AsciiRendererBean.COMPONENT_ID,
-                AsciiRendererBean.class.getName())
-                .provides("ke.ku.sco310.qr.api.QrCodeRenderer", "java.io.Serializable")
-                .properties("darkGlyph", "lightGlyph", "border"));
+        for (QrMicroEncoder provider : providers(QrMicroEncoder.class)) {
+            catalogue.add(descriptor(ROLE_MICRO_ENCODER, provider.getComponentId(), provider));
+        }
+        for (QrCodeRenderer provider : providers(QrCodeRenderer.class)) {
+            catalogue.add(descriptor(ROLE_RENDERER, provider.getRendererId(), provider));
+        }
+        for (QrCodeDecoder provider : providers(QrCodeDecoder.class)) {
+            ComponentDescriptor descriptor = descriptor(ROLE_DECODER, provider.getDecoderId(), provider);
+            if (provider.getDecoderId().contains("zxing") && !OptionalComponentSupport.isZxingAvailable()) {
+                descriptor.unavailable("com.google.zxing.core is not on the class path");
+            }
+            catalogue.add(descriptor);
+        }
 
         catalogue.add(new ComponentDescriptor(ROLE_REPOSITORY, FileSystemRepositoryBean.COMPONENT_ID,
                 FileSystemRepositoryBean.class.getName())
@@ -249,30 +242,75 @@ public class ComponentRegistry {
     }
 
     private QrCodeEncoder createEncoder(String componentId) throws Exception {
-        if (componentId == null || PureJavaQrEncoderBean.COMPONENT_ID.equals(componentId)) {
-            return new PureJavaQrEncoderBean();
-        }
-        if (ZxingQrEncoderAdapterBean.COMPONENT_ID.equals(componentId)) {
-            if (!OptionalComponentSupport.isZxingAvailable()) {
-                throw new IllegalStateException("Profile selected " + componentId
-                        + " but the ZXing core library is not on the class path");
-            }
-            return new ZxingQrEncoderAdapterBean();
-        }
-        throw new IllegalArgumentException("Unknown encoder component id: " + componentId);
+        return provider(QrCodeEncoder.class, componentId == null ? "encoder.pure-java.v1" : componentId,
+                ROLE_ENCODER);
     }
 
-    private QrCodeRenderer createRenderer(String componentId) {
-        if (componentId == null || PngRendererBean.COMPONENT_ID.equals(componentId)) {
-            return new PngRendererBean();
+    /** Creates a renderer provider through the renderer SPI. */
+    public QrCodeRenderer createRenderer(String componentId) {
+        return provider(QrCodeRenderer.class, componentId == null ? "renderer.png.v1" : componentId,
+                ROLE_RENDERER);
+    }
+
+    /** @return a decoder provider selected by its SPI component id. */
+    public QrCodeDecoder createDecoder(String componentId) {
+        return provider(QrCodeDecoder.class, componentId, ROLE_DECODER);
+    }
+
+    /** @return the separate Micro QR provider selected by its SPI component id. */
+    public QrMicroEncoder createMicroEncoder(String componentId) {
+        return provider(QrMicroEncoder.class, componentId, ROLE_MICRO_ENCODER);
+    }
+
+    private <T> T provider(Class<T> serviceType, String componentId, String role) {
+        for (T provider : providers(serviceType)) {
+            String id = serviceType == QrCodeRenderer.class
+                    ? ((QrCodeRenderer) provider).getRendererId()
+                    : serviceType == QrCodeDecoder.class
+                    ? ((QrCodeDecoder) provider).getDecoderId()
+                    : serviceType == QrMicroEncoder.class
+                    ? ((QrMicroEncoder) provider).getComponentId()
+                    : ((QrCodeEncoder) provider).getComponentId();
+            if (componentId.equals(id)) {
+                return provider;
+            }
         }
-        if (SvgRendererBean.COMPONENT_ID.equals(componentId)) {
-            return new SvgRendererBean();
+        throw new IllegalArgumentException("Unknown or unavailable " + role + " component id: " + componentId);
+    }
+
+    private <T> List<T> providers(Class<T> serviceType) {
+        List<T> result = new ArrayList<>();
+        try {
+            for (T provider : ServiceLoader.load(serviceType)) {
+                result.add(provider);
+            }
+        } catch (ServiceConfigurationError error) {
+            // An optional provider may fail to load when its library is absent. The catalogue still
+            // contains all providers that the current class path can instantiate.
         }
-        if (AsciiRendererBean.COMPONENT_ID.equals(componentId)) {
-            return new AsciiRendererBean();
+        return result;
+    }
+
+    private ComponentDescriptor descriptor(String role, String id, Object provider) {
+        String className = provider.getClass().getName();
+        ComponentDescriptor descriptor = new ComponentDescriptor(role, id, className)
+                .provides(provider.getClass().getInterfaces()[0].getName(), "java.io.Serializable")
+                .properties(writablePropertyNames(provider).toArray(new String[0]));
+        return descriptor;
+    }
+
+    private List<String> writablePropertyNames(Object bean) {
+        List<String> names = new ArrayList<>();
+        try {
+            for (PropertyDescriptor property : Introspector.getBeanInfo(bean.getClass()).getPropertyDescriptors()) {
+                if (property.getWriteMethod() != null && !"class".equals(property.getName())) {
+                    names.add(property.getName());
+                }
+            }
+        } catch (IntrospectionException e) {
+            names.add("(introspection unavailable)");
         }
-        throw new IllegalArgumentException("Unknown renderer component id: " + componentId);
+        return names;
     }
 
     /**

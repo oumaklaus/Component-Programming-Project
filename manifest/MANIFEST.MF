@@ -35,3 +35,18 @@ Java-Bean: True
 
 Name: ke/ku/sco310/qr/facade/QrStudioFacadeBean.class
 Java-Bean: True
+
+Name: ke/ku/sco310/qr/components/MicroQrEncoderBean.class
+Java-Bean: True
+
+Name: ke/ku/sco310/qr/components/PureJavaQrDecoderBean.class
+Java-Bean: True
+
+Name: ke/ku/sco310/qr/components/ZxingQrDecoderAdapterBean.class
+Java-Bean: True
+
+Name: ke/ku/sco310/qr/render/RoundedModuleRendererBean.class
+Java-Bean: True
+
+Name: ke/ku/sco310/qr/render/PdfRendererBean.class
+Java-Bean: True

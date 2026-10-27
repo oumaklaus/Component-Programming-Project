@@ -38,6 +38,18 @@ This project delivers a **working QR Code generator** that is built the way comp
 requires: the application is *assembled from independent, replaceable, introspectable components*
 rather than written as one monolithic program.
 
+### Extensions
+
+The suite now includes Kanji and explicit UTF-8 ECI segments, dynamic mixed-mode segmentation, and
+a separate Micro QR M1-M4 encoder. Decoder beans provide pure-Java and optional ZXing paths;
+rounded PNG and hand-written vector PDF renderers extend the original PNG/SVG/ASCII set. The CLI
+supports generation, decoding, batch CSV processing and live component listing, while the HTTP
+assembly adds payload limits, request logging, renderer reuse, CORS and `/components`. SPI provider
+files under `src/main/resources/META-INF/services/` let the registry discover these providers while
+preserving the existing `config/assembly.xml` role and ID format. Standard QR behavior is checked
+against ZXing; Micro QR is checked by the in-repository reference decoder because ZXing 3.5.3 does
+not support it.
+
 The suite contains **nine components plus two infrastructure classes**, every one of them a
 JavaBean that satisfies the mandatory bean characteristics (public class, no-argument constructor,
 `Serializable`, `get`/`set` design patterns, delegation events). The components are wired by a
@@ -1825,4 +1837,3 @@ introspection. §4.1 of this report tabulates each step against the class that i
 `java -cp out/classes ke.ku.sco310.qr.tools.BeanInspector <class>` demonstrates steps 3–6 and 8 on the compiled bytecode.
 
 ---
-

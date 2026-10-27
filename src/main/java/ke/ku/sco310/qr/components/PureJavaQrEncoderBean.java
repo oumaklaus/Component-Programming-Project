@@ -73,16 +73,17 @@ public class PureJavaQrEncoderBean implements QrCodeEncoder, Serializable, Bound
         info.setProviderName("SCO310 in-house QR engine");
         info.setProviderVersion("1.0.0");
         info.setProviderLicence("Student project - course work");
-        info.setEngineDescription("Pure-Java ISO/IEC 18004 encoder: numeric, alphanumeric and byte "
-                + "modes, Reed-Solomon over GF(2^8)/0x11D, all eight mask patterns scored with the "
-                + "four-part penalty function, versions 1-40.");
+        info.setEngineDescription("Pure-Java ISO/IEC 18004 encoder: numeric, alphanumeric, byte and "
+                + "kanji modes with a mixed-mode dynamic-programming segmenter, UTF-8 ECI designators, "
+                + "Reed-Solomon over GF(2^8)/0x11D, all eight mask patterns scored with the four-part "
+                + "penalty function, versions 1-40.");
         info.setMinimumVersion(1);
         info.setMaximumVersion(40);
         info.setMaximumByteCapacity(QrTables.maximumByteCapacity(QrErrorCorrection.LOW));
         info.setThirdParty(false);
         info.setRequiresOptionalLibrary(false);
         info.setSupportedModes(Arrays.asList(QrEncodingMode.NUMERIC, QrEncodingMode.ALPHANUMERIC,
-                QrEncodingMode.BYTE));
+                QrEncodingMode.BYTE, QrEncodingMode.KANJI, QrEncodingMode.ECI));
         return info;
     }
 

@@ -14,7 +14,11 @@ public enum QrEncodingMode {
     /** 45-character alphabet: 11 bits per 2 characters. */
     ALPHANUMERIC(0x2, new int[]{9, 11, 13}),
     /** Arbitrary 8-bit data: 8 bits per byte. */
-    BYTE(0x4, new int[]{8, 16, 16});
+    BYTE(0x4, new int[]{8, 16, 16}),
+    /** Kanji mode: 13 bits per Shift_JIS double-byte character (ISO/IEC 18004, 8.4.5). */
+    KANJI(0x8, new int[]{8, 10, 12}),
+    /** ECI designator: flags a character set for the following byte segments (ISO/IEC 18004, 7.4.9). */
+    ECI(0x7, new int[]{0, 0, 0});
 
     private final int modeIndicator;
     private final int[] charCountBits; // index 0 => versions 1-9, 1 => 10-26, 2 => 27-40

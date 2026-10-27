@@ -102,6 +102,96 @@ final class EngineReferenceTest {
                 numeric.getVersion() <= alpha.getVersion() + 1,
                 "numeric v" + numeric.getVersion() + " vs alphanumeric v" + alpha.getVersion());
 
+        // ---------------------------------------------------------------- kanji mode
+        String[] kanjiPayloads = {
+            "\u6f22\u5b57",                          // kanji (Shift_JIS double-byte)
+            "\u30c6\u30b9\u30c8",                    // katakana
+            "\u65e5\u672c\u8a9e\u306e\u30c6\u30ad\u30b9\u30c8", // mixed Japanese
+        };
+        int kanjiOk = 0;
+        int kanjiFail = 0;
+        for (String payload : kanjiPayloads) {
+            try {
+                QrCode symbol = encode(payload, QrErrorCorrection.LOW);
+                // An all-Kanji payload must select the kanji mode (no ECI designator needed).
+                if (symbol.getEncodingMode() == QrEncodingMode.KANJI
+                        && payload.equals(ZxingVerify.decodeModules(symbol))) {
+                    kanjiOk++;
+                } else {
+                    kanjiFail++;
+                }
+            } catch (Exception e) {
+                kanjiFail++;
+            }
+        }
+        harness.check("engine", "all-Kanji payloads round trip through the ZXing decoder",
+                kanjiFail == 0, kanjiOk + " decoded, " + kanjiFail + " failed");
+
+        QrCode katakana = encode("\u30c6\u30b9\u30c8", QrErrorCorrection.LOW);
+        harness.checkEquals("engine", "all-Kanji payload selects the kanji mode",
+                QrEncodingMode.KANJI, katakana.getEncodingMode());
+
+        // ---------------------------------------------------------------- ECI segments
+        // A UTF-8 byte-mode payload must carry an explicit ECI designator so the decoder knows
+        // the byte stream is not Shift_JIS or Latin-1. ZXing honours it and recovers the text.
+        String nonAscii = "\u00e9\u00e8\u00ea caf\u00e9 na\u00efve r\u00e9sum\u00e9";
+        QrCode eciSymbol = encode(nonAscii, QrErrorCorrection.MEDIUM);
+        boolean eciRoundTrip;
+        try {
+            eciRoundTrip = nonAscii.equals(ZxingVerify.decodeModules(eciSymbol));
+        } catch (Exception e) {
+            eciRoundTrip = false;
+        }
+        harness.check("engine", "non-ASCII byte payload is flagged with a UTF-8 ECI segment",
+                eciSymbol.getEncodingMode() == QrEncodingMode.BYTE && eciRoundTrip,
+                eciSymbol.getEncodingMode() + " round trip " + eciRoundTrip);
+        String mixedUnicode = nonAscii + " \u6f22\u5b57";
+        try {
+            harness.checkEquals("engine", "a mixed ASCII+Japanese payload decodes as UTF-8",
+                    mixedUnicode, ZxingVerify.decodeModules(encode(mixedUnicode, QrErrorCorrection.LOW)));
+        } catch (Exception e) {
+            harness.check("engine", "a mixed ASCII+Japanese payload decodes as UTF-8",
+                    false, "decode threw " + e.getMessage());
+        }
+
+        // ---------------------------------------------------------------- mixed-mode segmentation
+        // A payload of interleaved digits and upper-case letters is smaller when the engine splits
+        // it into numeric + alphanumeric segments than when it forces one byte-mode segment. The
+        // version that results must not be higher than a single-segment byte-mode encoding.
+        String mixed = "12345ABC6789DEF01234GHI";
+        QrCode segmented = encode(mixed, QrErrorCorrection.MEDIUM);
+        QrCode forcedByte = null;
+        try {
+            // Force byte mode by making the payload all lower-case: no numeric/alnum/kanji segment
+            // can swallow it, so the segmenter must fall back to a single byte segment.
+            forcedByte = encode(mixed.toLowerCase(java.util.Locale.ROOT), QrErrorCorrection.MEDIUM);
+        } catch (Exception e) {
+            forcedByte = null;
+        }
+        harness.check("engine", "mixed-mode segmentation does not exceed a single byte segment",
+                forcedByte == null || segmented.getVersion() <= forcedByte.getVersion(),
+                "mixed v" + segmented.getVersion() + " vs byte v"
+                        + (forcedByte == null ? "n/a" : forcedByte.getVersion()));
+
+        String[] payloads2 = {
+            "12345", "67890", "A1B2C3", "12AB34CD", "HELLO123", "XYZ999",
+        };
+        int mixedRoundTrip = 0;
+        int mixedRoundTripFail = 0;
+        for (String payload : payloads2) {
+            try {
+                if (payload.equals(ZxingVerify.decodeModules(encode(payload, QrErrorCorrection.MEDIUM)))) {
+                    mixedRoundTrip++;
+                } else {
+                    mixedRoundTripFail++;
+                }
+            } catch (Exception e) {
+                mixedRoundTripFail++;
+            }
+        }
+        harness.check("engine", "mixed-mode payloads round trip through the ZXing decoder",
+                mixedRoundTripFail == 0, mixedRoundTrip + " decoded, " + mixedRoundTripFail + " failed");
+
         // ---------------------------------------------------------------- capacity sweep
         int sweepOk = 0;
         int sweepFail = 0;

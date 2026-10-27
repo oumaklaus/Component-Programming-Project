@@ -36,7 +36,7 @@ final class AssemblyTest {
         List<ComponentDescriptor> catalogue = registry.listComponents();
         harness.check("assembly.catalogue", "every role has at least one implementation",
                 registry.listByRole("encoder").size() >= 1
-                        && registry.listByRole("renderer").size() == 3
+                        && registry.listByRole("renderer").size() >= 5
                         && registry.listByRole("repository").size() >= 1,
                 "encoders=" + registry.listByRole("encoder").size()
                         + " renderers=" + registry.listByRole("renderer").size()

@@ -1,0 +1,5 @@
+ke.ku.sco310.qr.render.PngRendererBean
+ke.ku.sco310.qr.render.SvgRendererBean
+ke.ku.sco310.qr.render.AsciiRendererBean
+ke.ku.sco310.qr.render.RoundedModuleRendererBean
+ke.ku.sco310.qr.render.PdfRendererBean

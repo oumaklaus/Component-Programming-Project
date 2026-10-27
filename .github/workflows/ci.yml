@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, 'feature/**' ]
+  pull_request:
+
+jobs:
+  verify:
+    name: JDK ${{ matrix.java }} - ProjectBuilder test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java: [11, 21]
+    env:
+      QR_EVIDENCE_DIR: ${{ runner.temp }}/qr-evidence
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+      - name: Bootstrap compile
+        run: |
+          mkdir -p out/classes
+          javac --release 11 -Xlint:all -cp lib/core-3.5.3.jar -d out/classes src/main/java/ke/ku/sco310/qr/*/*.java
+      - name: ProjectBuilder verification suite
+        run: |
+          java -Djava.awt.headless=true -cp out/classes ke.ku.sco310.qr.tools.ProjectBuilder test
+  maven:
+    name: Maven test (JDK ${{ matrix.java }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java: [11, 21]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+      - name: Run mvn test
+        run: mvn test

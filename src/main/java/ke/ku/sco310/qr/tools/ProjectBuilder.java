@@ -115,21 +115,24 @@ public final class ProjectBuilder {
         if (!compile(sources, CLASSES, ZXING_CORE)) {
             System.exit(1);
         }
+        copyResources(CLASSES);
         info("main classes: " + countFiles(Paths.get(CLASSES), ".class"));
     }
 
     /** Compiles the verification suite and runs it, rewriting the evidence folder. */
     static void runVerification() throws IOException, InterruptedException {
+        File evidence = evidenceDirectory();
         info("compiling the verification suite");
         List<File> sources = javaSourcesUnder("src/main/java");
         sources.addAll(javaSourcesUnder("src/test/java"));
         if (!compile(sources, TEST_CLASSES, ZXING_CORE + File.pathSeparator + ZXING_JAVASE)) {
             System.exit(1);
         }
+        copyResources(TEST_CLASSES);
         info("running the automated verification suite");
         String classPath = TEST_CLASSES + File.pathSeparator + CLASSES + File.pathSeparator
                 + ZXING_CORE + File.pathSeparator + ZXING_JAVASE;
-        int status = launch("ke.ku.sco310.qr.test.VerificationRunner", classPath, "docs/evidence");
+        int status = launch("ke.ku.sco310.qr.test.VerificationRunner", classPath, evidence.getAbsolutePath());
         if (status != 0) {
             System.out.println("verification failed with exit status " + status);
             System.exit(status);
@@ -138,6 +141,7 @@ public final class ProjectBuilder {
 
     /** Runs the mask-selection comparison against the independent ZXing encoder. */
     static void runMaskComparison() throws IOException, InterruptedException {
+        File evidence = evidenceDirectory();
         info("comparing the mask-selection stage with the independent ZXing encoder");
         List<File> sources = javaSourcesUnder("src/main/java");
         sources.addAll(javaSourcesUnder("src/test/java"));
@@ -146,7 +150,7 @@ public final class ProjectBuilder {
         }
         String classPath = TEST_CLASSES + File.pathSeparator + CLASSES + File.pathSeparator + ZXING_CORE;
         launch("ke.ku.sco310.qr.test.MaskComparisonTool", classPath,
-                "docs/evidence/mask-selection-comparison.csv");
+                new File(evidence, "mask-selection-comparison.csv").getAbsolutePath());
     }
 
     /** Builds the deployable JAR: compiled components plus the manifest that marks them as beans. */
@@ -256,6 +260,18 @@ public final class ProjectBuilder {
 
     // ------------------------------------------------------------------ helpers
 
+    private static File evidenceDirectory() {
+        String env = System.getenv("QR_EVIDENCE_DIR");
+        if (env != null && !env.trim().isEmpty()) {
+            return new File(env.trim());
+        }
+        String property = System.getProperty("qr.evidence.dir");
+        if (property != null && !property.trim().isEmpty()) {
+            return new File(property.trim());
+        }
+        return new File("docs/evidence");
+    }
+
     private static boolean compile(List<File> sources, String outputDirectory, String classPath) {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
@@ -266,11 +282,7 @@ public final class ProjectBuilder {
         try (StandardJavaFileManager files = compiler.getStandardFileManager(diagnostics, null,
                 StandardCharsets.UTF_8)) {
             Iterable<? extends JavaFileObject> units = files.getJavaFileObjectsFromFiles(sources);
-            List<String> options = Arrays.asList(
-                    "--release", RELEASE,
-                    "-Xlint:all,-this-escape",
-                    "-d", outputDirectory,
-                    "-cp", classPath);
+            List<String> options = compilerOptions(outputDirectory, classPath);
             boolean success = compiler.getTask(null, files, diagnostics, options, null, units).call();
             for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
                 String where = diagnostic.getSource() == null ? ""
@@ -288,14 +300,24 @@ public final class ProjectBuilder {
 
     private static int launch(String mainClass, String classPath, String... args) throws IOException,
             InterruptedException {
+        Process process = new ProcessBuilder(launchCommand(mainClass, classPath, args)).inheritIO().start();
+        return process.waitFor();
+    }
+
+    static List<String> compilerOptions(String outputDirectory, String classPath) {
+        return Arrays.asList("--release", RELEASE, "-Xlint:all", "-d", outputDirectory,
+                "-cp", classPath);
+    }
+
+    static List<String> launchCommand(String mainClass, String classPath, String... args) {
         List<String> command = new ArrayList<>();
         command.add(Paths.get(System.getProperty("java.home"), "bin", "java").toString());
+        command.add("-Djava.awt.headless=" + System.getProperty("java.awt.headless", "true"));
         command.add("-cp");
         command.add(classPath);
         command.add(mainClass);
         command.addAll(Arrays.asList(args));
-        Process process = new ProcessBuilder(command).inheritIO().start();
-        return process.waitFor();
+        return command;
     }
 
     private static List<File> javaSourcesUnder(String root) throws IOException {
@@ -307,6 +329,27 @@ public final class ProjectBuilder {
                 .forEach(path -> sources.add(path.toFile()));
         }
         return sources;
+    }
+
+    /** Copies classpath service descriptors and other resources into a compiler output tree. */
+    private static void copyResources(String outputDirectory) throws IOException {
+        Path root = Paths.get("src/main/resources");
+        if (!Files.isDirectory(root)) {
+            return;
+        }
+        try (Stream<Path> tree = Files.walk(root)) {
+            tree.filter(Files::isRegularFile).forEach(source -> {
+                try {
+                    Path target = Paths.get(outputDirectory).resolve(root.relativize(source));
+                    Files.createDirectories(target.getParent());
+                    Files.copy(source, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException e) {
+                    throw new ResourceCopyException(e);
+                }
+            });
+        } catch (ResourceCopyException e) {
+            throw e.cause;
+        }
     }
 
     private static long countFiles(Path root, String suffix) throws IOException {
@@ -331,6 +374,15 @@ public final class ProjectBuilder {
 
     private static void info(String message) {
         System.out.println("[build] " + message);
+    }
+
+    private static final class ResourceCopyException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+        private final IOException cause;
+
+        ResourceCopyException(IOException cause) {
+            this.cause = cause;
+        }
     }
 
     /** Keeps the unused-import warning away while documenting the stream-based traversal above. */
