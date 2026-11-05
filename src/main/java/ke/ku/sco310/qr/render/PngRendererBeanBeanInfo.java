@@ -7,29 +7,7 @@ import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.beans.SimpleBeanInfo;
 
-/**
- * Explicit introspection description of {@link PngRendererBean} (chapter 3, "5 Steps to Creating
- * a BeanInfo Class").
- *
- * <p>Why an explicit BeanInfo instead of relying on reflection alone?</p>
- * <ul>
- *   <li>the two {@code Color} properties are associated with the custom
- *       {@link HexColorPropertyEditor} through {@code setPropertyEditorClass};</li>
- *   <li>each property receives a human readable display name and a short description, which is
- *       what a property sheet shows to a designer;</li>
- *   <li>{@code quietZone} is marked as an <em>expert</em> feature, so a builder tool can hide it
- *       behind an "advanced" switch;</li>
- *   <li>the bean descriptor carries a display name for the palette.</li>
- * </ul>
- *
- * <p>The remaining properties are still discovered automatically by
- * {@code java.beans.Introspector}, because the class follows the {@code get}/{@code set} design
- * patterns.</p>
- *
- * <p>Naming rule: a builder tool looks for class {@code <BeanClass>BeanInfo}, so the descriptor of
- * {@code PngRendererBean} is {@code PngRendererBeanBeanInfo} - appending "BeanInfo" to the bean
- * class name, not replacing the trailing "Bean".</p>
- */
+/** Explicit introspection description of PngRendererBean (chapter 3, "5 Steps to Creating a BeanInfo Class"). */
 public class PngRendererBeanBeanInfo extends SimpleBeanInfo {
 
     @Override

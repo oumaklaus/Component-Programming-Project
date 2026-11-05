@@ -60,7 +60,7 @@ public interface QrCodeRepository extends java.io.Serializable {
 
     /**
      * @return the persisted history without checked exceptions, for read-only front ends such as
-     *         the HTTP statistics endpoint; an unreadable history yields an empty list
+     *         the application history; an unreadable history yields an empty list
      */
     List<QrHistoryEntry> getHistorySnapshot();
 }

@@ -14,7 +14,7 @@ import java.util.Map;
  * with which design-time property values.
  *
  * <p>This is the project's deployment descriptor. The same compiled components are deployed as a
- * desktop GUI and as an HTTP service simply by loading a different profile - deployment model
+ * desktop GUI with a different component selection - deployment model
  * D = (C, E, P, L), where only the parameters P change.</p>
  */
 public class AssemblyProfile implements Serializable {

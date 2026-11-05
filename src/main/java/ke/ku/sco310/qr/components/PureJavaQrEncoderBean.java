@@ -17,21 +17,7 @@ import java.beans.VetoableChangeSupport;
 import java.io.Serializable;
 import java.util.Arrays;
 
-/**
- * In-house encoder component: a JavaBean wrapping the pure-Java engine of this project.
- *
- * <p>Property design demonstrates all four property kinds required by the JavaBeans
- * component model (chapter 3):</p>
- * <ul>
- *   <li><b>simple</b> - {@code maximumVersion}, {@code forcedMaskPattern};</li>
- *   <li><b>bound</b> - {@code defaultErrorCorrection} and {@code boostErrorCorrection} notify
- *       interested listeners whenever they change;</li>
- *   <li><b>constrained</b> - {@code minimumVersion} may be vetoed by a listener, and the bean
- *       itself vetoes a change that would make the version window inconsistent;</li>
- *   <li><b>indexed</b> - not applicable to this component, so the indexed demonstration lives in
- *       {@link ke.ku.sco310.qr.store.QrHistoryBean}.</li>
- * </ul>
- */
+/** In-house encoder component: a JavaBean wrapping the pure-Java engine of this project. */
 public class PureJavaQrEncoderBean implements QrCodeEncoder, Serializable, BoundPropertySource {
 
     private static final long serialVersionUID = 1L;
@@ -61,7 +47,7 @@ public class PureJavaQrEncoderBean implements QrCodeEncoder, Serializable, Bound
                 maximumVersion, forcedMaskPattern, COMPONENT_ID);
     }
 
-    /** Convenience overload used by the GUI and HTTP assemblies: uses the default level property. */
+    /** Convenience overload used by the desktop application: uses the default level property. */
     public QrCode encode(String content) throws QrEncodingException {
         return encode(content, defaultErrorCorrection);
     }
@@ -123,13 +109,7 @@ public class PureJavaQrEncoderBean implements QrCodeEncoder, Serializable, Bound
         return minimumVersion;
     }
 
-    /**
-     * Constrained property: a registered {@link VetoableChangeListener} may reject the new value,
-     * and this bean vetoes inconsistent windows itself.
-     *
-     * @param minimumVersion lowest version the encoder may select (1..40)
-     * @throws java.beans.PropertyVetoException when a listener vetoes the change
-     */
+    /** Constrained property: a registered VetoableChangeListener may reject the new value, and this bean vetoes inconsistent windows itself. */
     public void setMinimumVersion(int minimumVersion) throws java.beans.PropertyVetoException {
         if (minimumVersion < 1 || minimumVersion > 40) {
             throw new IllegalArgumentException("minimumVersion must be 1..40");

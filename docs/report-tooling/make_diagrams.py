@@ -140,15 +140,15 @@ def diagram_component_model():
         ["event object, event source = facade,",
          "listeners = AuditLogListenerBean,",
          "              Swing status bar,",
-         "              HTTP statistics endpoint"], accent=ACCENT_3)
+         "              Swing history view"], accent=ACCENT_3)
 
     box(draw, (1120, 360, 1450, 520), "AuditLogListenerBean",
         ["implements the listener interface",
          "logFile / echoToConsole / verbose",
          "observes every generation"], accent=ACCENT_3)
-    box(draw, (1120, 580, 1450, 700), "Front-end assemblies",
-        ["QrStudioGuiAssembly (Swing)",
-         "QrHttpServiceComponent (HTTP)"], accent=ACCENT_4)
+    box(draw, (1120, 580, 1450, 700), "Desktop application",
+        ["QrStudioGuiAssembly",
+         "QrStudioFrame"], accent=ACCENT_4)
     box(draw, (1120, 120, 1450, 300), "ComponentRegistry + AssemblyProfile",
         ["catalogue: I, D, availability",
          "selects one implementation per role",
@@ -189,7 +189,7 @@ def diagram_connection_model():
         ["writes the audit trail"], accent=ACCENT_3)
     box(draw, (1020, 230, 1360, 340), "Listener 2: QrStudioFrame (status bar)",
         ["updates the user interface"], accent=ACCENT_3)
-    box(draw, (1020, 370, 1360, 480), "Listener 3: HTTP statistics endpoint",
+    box(draw, (1020, 370, 1360, 480), "Listener 3: desktop status label",
         ["counts generations"], accent=ACCENT_3)
 
     box(draw, (60, 380, 420, 560), "Bound property source",
@@ -231,8 +231,8 @@ def diagram_deployment_model():
     box(draw, (60, 400, 700, 620), "Execution environment: Java SE 11+ (javac 21 --release 11)",
         ["no build tool required at deployment time",
          "optional: com.google.zxing core + javase",
-         "JDK HttpServer for the web front end",
-         "Swing for the desktop front end"], accent=ACCENT_2)
+         "JavaBeans introspection and persistence",
+         "Swing desktop interface"], accent=ACCENT_2)
 
     box(draw, (60, 690, 700, 820), "Location: workspace / laboratory machine",
         ["out/classes, out/dist, out/generated",
@@ -241,9 +241,9 @@ def diagram_deployment_model():
     box(draw, (800, 100, 1440, 240), "Assembly 1 - Desktop (QrStudioGuiAssembly)",
         ["profile: renderer.png.v1, moduleSize=10, GUI wiring",
          "renders the live preview and the history list"], accent=ACCENT_4)
-    box(draw, (800, 480, 1440, 620), "Assembly 2 - Web service (QrHttpServiceComponent)",
-        ["GET /qr?text=...&format=svg  (renderer per request)",
-         "GET /stats, /history, /health"], accent=ACCENT_4)
+    box(draw, (800, 480, 1440, 620), "Assembly 2 - Alternate renderer profile",
+        ["renderer.svg.v1 or renderer.ascii.v1",
+         "same encoder, repository and history"], accent=ACCENT_4)
     box(draw, (800, 670, 1440, 800), "Optional assembly 3 - any tool that reads the XML bean graph",
         ["java.beans.XMLDecoder rebuilds the wiring: no recompilation"], accent=ACCENT_2)
 

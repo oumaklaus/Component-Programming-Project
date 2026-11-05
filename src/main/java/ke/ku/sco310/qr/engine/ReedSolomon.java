@@ -1,14 +1,6 @@
 package ke.ku.sco310.qr.engine;
 
-/**
- * Reed-Solomon error-correction codeword generator for QR Code symbols.
- *
- * <p>The divisor polynomial of degree {@code n} is
- * (x - a^0)(x - a^1)...(x - a^(n-1)) over GF(2^8); the error-correction codewords are the
- * remainder of the data polynomial divided by that divisor. The routine below performs the
- * division with a shift register ({@code degree} bytes of state), which is the standard
- * hardware interpretation of polynomial long division.</p>
- */
+/** Reed-Solomon error-correction codeword generator for QR Code symbols. */
 final class ReedSolomon {
 
     private ReedSolomon() {

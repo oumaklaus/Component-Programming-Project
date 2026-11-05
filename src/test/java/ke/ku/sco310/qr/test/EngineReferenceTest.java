@@ -11,14 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Functional verification of the in-house encoder component against the independent ZXing oracle.
- *
- * <p>The checks are deliberately layered: first the ISO/IEC 18004 tables are compared with the
- * tables published by ZXing, then real symbols are decoded, then every one of the 160
- * version/level combinations is exercised at its exact byte capacity, and finally the failure
- * paths are exercised so that a "green" report cannot be produced by silent no-ops.</p>
- */
+/** Functional verification of the in-house encoder component against the independent ZXing oracle. */
 final class EngineReferenceTest {
 
     private EngineReferenceTest() {
@@ -56,7 +49,7 @@ final class EngineReferenceTest {
             "HELLO WORLD",
             "1234567890",
             "123456789012345678901234567890123456789012345678901234567890",
-            "https://www.ku.ac.ke/sco310/component-programming",
+            "Kenyatta University",
             "Kenyatta University - SCO310 Component Programming 2025/2026",
             "Mixed case, punctuation: .,;:!? and symbols /+-%*",
             "\u00e9\u00e8\u00ea caf\u00e9 na\u00efve r\u00e9sum\u00e9",

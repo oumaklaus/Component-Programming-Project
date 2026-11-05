@@ -1,0 +1,301 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SCO 310 QR Component Studio — Clean Report</title><style>
+@page { size: A4; margin: 22mm 20mm; }
+:root { --navy:#15324a; --blue:#1d6fa5; --light:#eef5f9; --line:#c7d7e2; }
+body { font-family: "Segoe UI", Arial, sans-serif; color:#1e2933; line-height:1.55; max-width:1050px; margin:0 auto; padding:36px; }
+h1 { text-align:center; color:var(--navy); border-bottom:3px solid var(--blue); padding-bottom:14px; font-size:2.15rem; }
+h2 { color:var(--navy); margin-top:2.2rem; border-bottom:1px solid var(--line); padding-bottom:6px; }
+h3 { color:var(--blue); margin-top:1.5rem; }
+table { width:100%; border-collapse:collapse; margin:1rem 0 1.4rem; font-size:.94rem; }
+th { background:var(--navy); color:white; text-align:left; }
+th,td { border:1px solid var(--line); padding:8px 10px; vertical-align:top; }
+tr:nth-child(even) td { background:#f8fbfd; }
+blockquote { background:var(--light); border-left:5px solid var(--blue); margin:1.2rem 0; padding:10px 16px; }
+code { background:#eef2f5; padding:1px 4px; border-radius:3px; }
+img { max-width:100%; height:auto; display:block; margin:14px auto; }
+hr { border:0; border-top:1px solid var(--line); margin:2rem 0; }
+li { margin:.25rem 0; }
+@media print { body { max-width:none; padding:0; } h2 { break-after:avoid; } table,img { break-inside:avoid; } }
+</style></head><body><h1 id="sco-310-sit-300-component-programming-project-report">SCO 310 / SIT 300 — Component Programming Project Report</h1>
+<h2 id="qr-component-studio">QR Component Studio</h2>
+<p><strong>A QR Code generator built from reusable JavaBeans components</strong></p>
+<table>
+<thead>
+<tr>
+<th>Submission detail</th>
+<th>Information</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Student name</td>
+<td><code>[STUDENT NAME]</code></td>
+</tr>
+<tr>
+<td>Registration number</td>
+<td><code>[REGISTRATION NUMBER]</code></td>
+</tr>
+<tr>
+<td>Lecturer</td>
+<td>Dr. Bernard Ondara, Ph.D.</td>
+</tr>
+<tr>
+<td>Institution</td>
+<td>Kenyatta University — Department of Computing</td>
+</tr>
+<tr>
+<td>Unit</td>
+<td>SCO 310 / SIT 300 — Component Programming</td>
+</tr>
+<tr>
+<td>Submission date</td>
+<td><code>[DATE]</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="table-of-contents">Table of contents</h2>
+<ol>
+<li>The application</li>
+<li>Output formats</li>
+<li>Main program logic</li>
+<li>Components used</li>
+<li>QR Code generation</li>
+<li>Configuration and saved data</li>
+<li>Testing</li>
+<li>Problems fixed</li>
+<li>Conclusion</li>
+<li>References</li>
+</ol>
+<hr />
+<h2 id="1-the-application">1. The application</h2>
+<p>QR Component Studio accepts text, creates a QR Code, displays it and saves the generated file. The
+same window also shows the selected output format, recent history and details about the generated
+symbol.</p>
+<p><img alt="QR Component Studio desktop application" src="screenshots/03-gui-png-assembly.png" /></p>
+<h3 id="11-entering-the-text-and-choosing-the-format">1.1 Entering the text and choosing the format</h3>
+<p><img alt="Payload and output controls" src="screenshots/29-desktop-input-controls.png" /></p>
+<p>The payload box contains the text to be encoded. The output selector chooses the renderer used for
+the result. When <strong>Generate</strong> is clicked, the text is passed to <code>QrStudioFacadeBean</code>, which starts the
+generation process.</p>
+<h3 id="12-result-history-and-saved-file">1.2 Result, history and saved file</h3>
+<p><img alt="QR preview" src="screenshots/30-desktop-qr-preview.png" /></p>
+<p>The encoder creates the QR matrix and the selected renderer turns it into the requested output. The
+result is displayed in the preview area.</p>
+<p><img alt="Generation history and status" src="screenshots/31-desktop-history-status.png" /></p>
+<p>After generation, the history area records the operation. The status line shows the QR version,
+error-correction level, mask, generation time and saved filename.</p>
+<hr />
+<h2 id="2-output-formats">2. Output formats</h2>
+<p>The application uses separate renderer components. Changing the format does not change the encoder,
+history or file-storage components.</p>
+<h3 id="21-png">2.1 PNG</h3>
+<p>The PNG result is shown in Section 1. It is produced by <code>PngRendererBean</code> using the configured module
+size, quiet zone and colours.</p>
+<h3 id="22-svg">2.2 SVG</h3>
+<p><img alt="Desktop application using SVG output" src="screenshots/04-gui-svg-assembly.png" /></p>
+<p><code>SvgRendererBean</code> creates vector output from the same QR matrix. The image remains clear when it is
+resized.</p>
+<h3 id="23-text">2.3 Text</h3>
+<p><img alt="Desktop application using text output" src="screenshots/05-gui-ascii-assembly.png" /></p>
+<p><code>AsciiRendererBean</code> changes the dark and light modules into text characters. The application shows
+the result in a scrollable text area.</p>
+<h3 id="24-other-available-formats">2.4 Other available formats</h3>
+<p>The project also contains <code>RoundedModuleRendererBean</code> for rounded PNG output and
+<code>PdfRendererBean</code> for vector PDF output. Both implement the same <code>QrCodeRenderer</code> interface.</p>
+<hr />
+<h2 id="3-main-program-logic">3. Main program logic</h2>
+<h3 id="31-encoder-interface">3.1 Encoder interface</h3>
+<p><img alt="QrCodeEncoder interface" src="screenshots/01-code-provided-interface.png" /></p>
+<p><code>QrCodeEncoder</code> defines the method used to encode text. The built-in encoder and the optional ZXing
+encoder both implement this interface.</p>
+<h3 id="32-encoder-component">3.2 Encoder component</h3>
+<p><img alt="PureJavaQrEncoderBean" src="screenshots/16-code-encoder-bean.png" /></p>
+<p><code>PureJavaQrEncoderBean</code> stores the encoder settings and passes the work to the QR engine. Its main
+properties include the default error-correction level, minimum version, maximum version and forced
+mask.</p>
+<h3 id="33-error-correction">3.3 Error correction</h3>
+<p><img alt="Reed-Solomon calculation" src="screenshots/02-code-reed-solomon.png" /></p>
+<p><code>ReedSolomon</code> creates the error-correction codewords. These codewords allow a damaged QR Code to
+remain readable within the limit of its selected error-correction level.</p>
+<h3 id="34-png-creation">3.4 PNG creation</h3>
+<p><img alt="PngRendererBean" src="screenshots/17-code-png-renderer.png" /></p>
+<p><code>PngRendererBean</code> creates the image, paints the background and draws every dark QR module. The final
+image is returned as a <code>RenderedArtifact</code>.</p>
+<h3 id="35-generation-process">3.5 Generation process</h3>
+<p><img alt="QrStudioFacadeBean" src="screenshots/19-code-facade.png" /></p>
+<p><code>QrStudioFacadeBean</code> controls the main process:</p>
+<ol>
+<li>encode the text;</li>
+<li>render the QR Code;</li>
+<li>save the generated file;</li>
+<li>update the history; and</li>
+<li>notify registered listeners.</li>
+</ol>
+<h3 id="36-loading-and-connecting-components">3.6 Loading and connecting components</h3>
+<p><img alt="ComponentRegistry" src="screenshots/20-code-registry.png" /></p>
+<p><code>ComponentRegistry</code> loads the selected components, applies their property values and checks that the
+required connections are available.</p>
+<h3 id="37-history">3.7 History</h3>
+<p><img alt="QrHistoryBean" src="screenshots/18-code-history-bean.png" /></p>
+<p><code>QrHistoryBean</code> stores recent generation records. Its maximum size can be changed, and older entries
+are removed when the limit is reached.</p>
+<h3 id="38-desktop-window">3.8 Desktop window</h3>
+<p><img alt="QrStudioFrame" src="screenshots/22-code-swing-assembly.png" /></p>
+<p><code>QrStudioFrame</code> reads the user input, calls the facade and displays the returned result. The QR
+encoding algorithm is kept outside the window class.</p>
+<h3 id="39-zxing-adapter">3.9 ZXing adapter</h3>
+<p><img alt="ZXing encoder adapter" src="screenshots/24-code-zxing-adapter.png" /></p>
+<p><code>ZxingQrEncoderAdapterBean</code> allows ZXing to be used through the same <code>QrCodeEncoder</code> interface. The
+rest of the application does not need to know which encoder is connected.</p>
+<hr />
+<h2 id="4-components-used">4. Components used</h2>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Component</th>
+<th>Main work</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Encoder</td>
+<td><code>PureJavaQrEncoderBean</code></td>
+<td>creates standard QR Codes</td>
+</tr>
+<tr>
+<td>Encoder</td>
+<td><code>ZxingQrEncoderAdapterBean</code></td>
+<td>uses the optional ZXing encoder</td>
+</tr>
+<tr>
+<td>Micro QR encoder</td>
+<td><code>MicroQrEncoderBean</code></td>
+<td>creates Micro QR M1–M4 symbols</td>
+</tr>
+<tr>
+<td>Decoder</td>
+<td><code>PureJavaQrDecoderBean</code></td>
+<td>reads supported QR matrices and generated files</td>
+</tr>
+<tr>
+<td>Decoder</td>
+<td><code>ZxingQrDecoderAdapterBean</code></td>
+<td>uses ZXing for decoding</td>
+</tr>
+<tr>
+<td>Renderer</td>
+<td><code>PngRendererBean</code></td>
+<td>creates PNG images</td>
+</tr>
+<tr>
+<td>Renderer</td>
+<td><code>SvgRendererBean</code></td>
+<td>creates SVG files</td>
+</tr>
+<tr>
+<td>Renderer</td>
+<td><code>AsciiRendererBean</code></td>
+<td>creates text output</td>
+</tr>
+<tr>
+<td>Renderer</td>
+<td><code>RoundedModuleRendererBean</code></td>
+<td>creates rounded PNG images</td>
+</tr>
+<tr>
+<td>Renderer</td>
+<td><code>PdfRendererBean</code></td>
+<td>creates PDF files</td>
+</tr>
+<tr>
+<td>Repository</td>
+<td><code>FileSystemRepositoryBean</code></td>
+<td>saves files and stored history</td>
+</tr>
+<tr>
+<td>History</td>
+<td><code>QrHistoryBean</code></td>
+<td>keeps recent generation records</td>
+</tr>
+<tr>
+<td>Listener</td>
+<td><code>AuditLogListenerBean</code></td>
+<td>records generation events</td>
+</tr>
+<tr>
+<td>Facade</td>
+<td><code>QrStudioFacadeBean</code></td>
+<td>controls the generation process</td>
+</tr>
+</tbody>
+</table>
+<h3 id="41-javabeans-features-used">4.1 JavaBeans features used</h3>
+<p>The components use public no-argument constructors and getter/setter methods. Bound properties send
+change events when their values are updated. Constrained properties can reject invalid values.
+<code>QrHistoryBean</code> also provides indexed access to individual history entries.</p>
+<p><code>PngRendererBeanBeanInfo</code> and <code>QrHistoryBeanBeanInfo</code> provide extra information about the bean
+properties. <code>HexColorPropertyEditor</code> changes hexadecimal colour text into Java <code>Color</code> objects.</p>
+<hr />
+<h2 id="5-qr-code-generation">5. QR Code generation</h2>
+<p>The built-in encoder follows these steps:</p>
+<ol>
+<li>check the text and choose suitable encoding modes;</li>
+<li>choose the smallest version that can hold the data;</li>
+<li>add the mode, character count, data and padding bits;</li>
+<li>create Reed–Solomon error-correction codewords;</li>
+<li>place the finder, timing, alignment and data modules;</li>
+<li>test the eight mask patterns; and</li>
+<li>add the format and version information.</li>
+</ol>
+<p>Numeric, alphanumeric, byte, Kanji, UTF-8 ECI and mixed-mode content are supported. Standard QR
+versions 1–40 and error-correction levels L, M, Q and H are available. Micro QR M1–M4 is handled by
+a separate encoder component.</p>
+<hr />
+<h2 id="6-configuration-and-saved-data">6. Configuration and saved data</h2>
+<p><code>config/assembly.xml</code> stores the selected components and their property values. <code>AssemblyProfile</code>
+loads this file, while <code>ComponentRegistry</code> creates and connects the components.</p>
+<p><code>FileSystemRepositoryBean</code> saves generated files in the configured folder. It also stores the
+history so that previous records can be loaded again. <code>AssemblyGraphBean</code> supports saving and
+restoring the connected bean objects through <code>XMLEncoder</code> and <code>XMLDecoder</code>.</p>
+<hr />
+<h2 id="7-testing">7. Testing</h2>
+<p>The project includes checks for encoding, decoding, renderers, component properties, history,
+configuration and saved files. The tests also use ZXing to decode generated symbols and compare the
+result with the original text.</p>
+<p><img alt="Main test class" src="screenshots/25-code-verification.png" /></p>
+<p>The latest full test run completed successfully. Invalid component names, missing connections and
+corrupted files are also tested to make sure errors are detected.</p>
+<hr />
+<h2 id="8-problems-fixed">8. Problems fixed</h2>
+<h3 id="81-error-correction-blocks">8.1 Error-correction blocks</h3>
+<p>The first multi-block version placed some data and error-correction codewords in the wrong order.
+The interleaving step was corrected and checked with larger QR versions.</p>
+<h3 id="82-large-preview-images">8.2 Large preview images</h3>
+<p>Large QR Codes could be cut off in the desktop window. The preview layout was changed so the result
+can fit or scroll correctly.</p>
+<h3 id="83-history-property">8.3 History property</h3>
+<p>The history entries were first shown as a normal property. <code>IndexedPropertyDescriptor</code> was added so
+individual entries can be discovered and accessed correctly.</p>
+<h3 id="84-optional-zxing-library">8.4 Optional ZXing library</h3>
+<p>The application now checks whether ZXing is available before selecting its adapter. If it is not
+available, the built-in encoder remains selected.</p>
+<hr />
+<h2 id="9-conclusion">9. Conclusion</h2>
+<p>QR Component Studio generates QR Codes through separate encoder, renderer, storage, history and
+listener components. These parts are connected through shared interfaces, which allows an encoder or
+renderer to be changed without changing the rest of the application.</p>
+<p>The desktop application generates PNG, SVG and text output, saves the result and records recent
+operations. The built-in QR engine handles the complete generation process, while the optional ZXing
+adapter provides another encoder using the same interface.</p>
+<hr />
+<h2 id="10-references">10. References</h2>
+<ol>
+<li>International Organization for Standardization and IEC. <em>ISO/IEC 18004:2015 — QR Code bar code
+   symbology specification</em>.</li>
+<li>Szyperski, C. <em>Component Software: Beyond Object-Oriented Programming</em>. Second edition,
+   Addison-Wesley, 2002.</li>
+<li>Oracle. <em>JavaBeans Specification</em> and <code>java.beans</code> API documentation.</li>
+<li>ZXing Project. <em>ZXing Core 3.5.3</em>.</li>
+<li>SCO 310 / SIT 300 Component Programming course materials, Kenyatta University.</li>
+</ol></body></html>

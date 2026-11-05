@@ -32,7 +32,7 @@ public interface QrCodeRenderer extends java.io.Serializable {
     /** @return file extension without the dot, e.g. {@code png}. */
     String getFileExtension();
 
-    /** @return MIME type used by the HTTP front end, e.g. {@code image/png}. */
+    /** @return MIME type of the generated file, e.g. {@code image/png}. */
     String getMimeType();
 
     /** @return one-line description of the current property configuration (used in reports). */

@@ -25,23 +25,7 @@ import java.util.Map;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 
-/**
- * Component broker and assembler.
- *
- * <p>Responsibilities:</p>
- * <ol>
- *   <li><b>catalogue</b> - {@link #listComponents()} publishes every implementation that can fill
- *       each role, together with the interfaces it provides and requires and whether the current
- *       class path can host it;</li>
- *   <li><b>selection</b> - {@link #build(AssemblyProfile)} instantiates the implementation chosen
- *       by the profile and refuses a selection whose context dependencies are not satisfied;</li>
- *   <li><b>configuration</b> - profile properties are applied to the beans through
- *       {@code java.beans.Introspector} and their setter methods, so a designer edits text, not
- *       code;</li>
- *   <li><b>wiring</b> - the facade receives the other components through its property setters and
- *       the audit listener is connected to the facade's event source.</li>
- * </ol>
- */
+/** Component broker and assembler. */
 public class ComponentRegistry {
 
     private final List<String> configurationNotes = new ArrayList<>();
@@ -138,14 +122,7 @@ public class ComponentRegistry {
         return result;
     }
 
-    /**
-     * Creates and wires a complete assembly from a profile.
-     *
-     * @param profile component selection plus property values
-     * @return the wired assembly, ready to generate symbols
-     * @throws Exception when the profile selects an unavailable component or a property cannot be
-     *                   applied
-     */
+    /** Creates and wires a complete assembly from a profile. */
     public QrAssembly build(AssemblyProfile profile) throws Exception {
         configurationNotes.clear();
         QrAssembly assembly = new QrAssembly(profile);
@@ -208,12 +185,7 @@ public class ComponentRegistry {
         return assembly;
     }
 
-    /**
-     * Checks that every dependency declared by a component in the assembly is satisfied.
-     *
-     * @param assembly wired assembly
-     * @return one line per dependency, prefixed {@code OK} or {@code MISSING}
-     */
+    /** Checks that every dependency declared by a component in the assembly is satisfied. */
     public List<String> validate(QrAssembly assembly) {
         List<String> report = new ArrayList<>();
         report.add("encoder       -> facade.setEncoder     : "
@@ -313,13 +285,7 @@ public class ComponentRegistry {
         return names;
     }
 
-    /**
-     * Applies textual property values to a bean through the JavaBeans introspection API.
-     *
-     * <p>This is the mechanism that makes design-time configuration possible: the property
-     * descriptors are discovered from the {@code get}/{@code set} naming patterns (or from the
-     * component's BeanInfo), and the values from the profile are coerced to the declared types.</p>
-     */
+    /** Applies textual property values to a bean through the JavaBeans introspection API. */
     private void applyProperties(Object bean, Map<String, String> properties, String label)
             throws IntrospectionException, InvocationTargetException, IllegalAccessException {
         if (properties.isEmpty()) {

@@ -27,21 +27,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * Composite (facade) component that assembles the encoder, the renderer, the repository, the
- * history and the listener components into the process "generate a QR Code".
- *
- * <p><b>Provided interface:</b> {@code generate(...)}, {@code renderWith(...)},
- * {@code regenerate(...)} and the listener registration methods.<br>
- * <b>Required interfaces (context dependencies D):</b> {@link QrCodeEncoder},
- * {@link QrCodeRenderer}, {@link QrCodeRepository} and {@link QrHistoryBean}. All four are
- * injected through ordinary JavaBeans property setters, so a builder tool can rewire the
- * assembly at design time without touching this class.</p>
- *
- * <p>The facade is also the <em>event source</em> of the JavaBeans connection model: it fires a
- * {@link QrCodeGeneratedEvent} after every successful generation. The audit logger, the GUI
- * status bar and the HTTP service statistics bean all connect to it as listeners.</p>
- */
+/** Composite (facade) component that assembles the encoder, the renderer, the repository, the history and the listener components into the process "ge... */
 public class QrStudioFacadeBean implements Serializable, BoundPropertySource {
 
     private static final long serialVersionUID = 1L;
@@ -74,38 +60,13 @@ public class QrStudioFacadeBean implements Serializable, BoundPropertySource {
 
     // ------------------------------------------------------------------ provided interface
 
-    /**
-     * Encodes, renders and (when configured) stores one payload using the injected components.
-     *
-     * @param content payload to encode
-     * @param level   error-correction level; {@code null} uses the {@code defaultErrorCorrection} property
-     * @return the complete outcome of the generation
-     * @throws QrEncodingException  when the payload cannot be encoded
-     * @throws QrRenderingException when the renderer fails
-     * @throws QrStorageException   when the repository fails
-     */
+    /** Encodes, renders and (when configured) stores one payload using the injected components. */
     public QrGenerationResult generate(String content, QrErrorCorrection level)
             throws QrEncodingException, QrRenderingException, QrStorageException {
         return generate(content, level, null);
     }
 
-    /**
-     * Variant of {@link #generate(String, QrErrorCorrection)} that temporarily uses a
-     * caller supplied renderer component instead of the injected one.
-     *
-     * <p>The HTTP assembly uses it to honour a {@code ?format=svg} request without mutating the
-     * shared facade state, which is safe for concurrent requests. The injected renderer stays the
-     * default for every other caller - substituted components are an explicit choice, never an
-     * accident.</p>
-     *
-     * @param content          payload to encode
-     * @param level            error-correction level, {@code null} for the default property
-     * @param rendererOverride renderer component to use for this call, or {@code null}
-     * @return the complete outcome of the generation
-     * @throws QrEncodingException  when the payload cannot be encoded
-     * @throws QrRenderingException when the chosen renderer fails
-     * @throws QrStorageException   when the repository fails
-     */
+    /** Variant of #generate(String, that temporarily uses a caller supplied renderer component instead of the injected one. */
     public QrGenerationResult generate(String content, QrErrorCorrection level,
                                        QrCodeRenderer rendererOverride)
             throws QrEncodingException, QrRenderingException, QrStorageException {
@@ -148,16 +109,7 @@ public class QrStudioFacadeBean implements Serializable, BoundPropertySource {
         return generate(content, defaultErrorCorrection);
     }
 
-    /**
-     * Re-renders an already encoded symbol with a different renderer component. The caller can
-     * pass a freshly configured renderer instance, which is how the GUI offers PNG/SVG/ASCII
-     * output from a single encoded symbol without re-encoding.
-     *
-     * @param symbol   previously encoded symbol
-     * @param renderer renderer to use instead of the injected default
-     * @return the rendered artifact
-     * @throws QrRenderingException when the substitute renderer fails
-     */
+    /** Re-renders an already encoded symbol with a different renderer component. */
     public RenderedArtifact renderWith(QrCode symbol, QrCodeRenderer renderer) throws QrRenderingException {
         if (renderer == null) {
             throw new QrRenderingException(COMPONENT_ID, "No renderer was supplied");

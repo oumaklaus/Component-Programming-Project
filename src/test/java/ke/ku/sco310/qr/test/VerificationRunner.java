@@ -121,7 +121,7 @@ public final class VerificationRunner {
         PureJavaQrEncoderBean encoder = new PureJavaQrEncoderBean();
         String[] payloads = {
             "SCO310",
-            "https://www.ku.ac.ke/sco310",
+            "Kenyatta University",
             "Kenyatta University - Component Programming",
             "1234567890",
         };

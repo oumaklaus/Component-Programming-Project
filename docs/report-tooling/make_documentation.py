@@ -61,9 +61,7 @@ CAPTIONS = {
     "12-verification-transcript": ("Screenshot 6.", "The verification transcript: 108 checks, 108 passed, 0 failed."),
     "13-build-and-package": ("Screenshot 7.", "Build, verify and package in one command."),
     "14-jar-manifest": ("Screenshot 8.", "The deployment interface: Java-Bean: True entries for all nine beans."),
-    "15-http-service": ("Screenshot 9.", "The HTTP assembly answering /qr, /stats and /history."),
     "26-bean-feature-matrix": ("Screenshot 10.", "The bean feature matrix across four components in one view."),
-    "http-service-symbol": ("Screenshot 11.", "The artifact returned by the HTTP service for a PNG request."),
 }
 
 

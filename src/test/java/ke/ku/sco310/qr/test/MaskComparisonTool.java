@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets;
 public final class MaskComparisonTool {
 
     private static final String[] PAYLOADS = {
-        "01234567", "8675309", "HELLO WORLD", "https://www.ku.ac.ke/sco310",
+        "01234567", "8675309", "HELLO WORLD", "Kenyatta University",
         "SCO310 COMPONENT PROGRAMMING", "Kenyatta University 2026",
         "WIFI:T:WPA;S:KU-WIFI;P:secret123;;", "tel:+254700000000",
         "mailto:sco310@ku.ac.ke", "geo:-1.2921,36.8219", "https://github.com/",
@@ -35,7 +35,7 @@ public final class MaskComparisonTool {
         "1234567890123456789012345678901234567890", "A", "Z9",
         "The quick brown fox jumps over the lazy dog.", "QR CODE GENERATOR v1.0.0",
         "Le cafe naifve - accents", "Line 1\nLine 2\nLine 3", "ORDER-2026-10-15-0042",
-        "https://www.ku.ac.ke/sco310/component-programming?report=final", "0123456789",
+        "Kenyatta University", "0123456789",
         "SCO310", "Kenyatta University - Component Programming", "urn:isbn:9780137581444",
         "\u3053\u3093\u306b\u3061\u306f\u4e16\u754c"
     };

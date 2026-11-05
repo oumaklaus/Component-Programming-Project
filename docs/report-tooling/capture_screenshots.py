@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Captures the screenshots used by the report: the running application, the web service,
+"""Captures the screenshots used by the report: the running application,
 the introspection tool, the verification transcript and the source code listings.
 
-Everything is captured from the real programs (Xvfb + Swing for the GUI, the actual terminal
-output for the console shots, Pygments for the source listings); no screenshot is a mock-up.
+Screenshots are created from the running application and the current source files.
 
     python3 docs/report-tooling/capture_screenshots.py
 """
@@ -160,28 +159,6 @@ def main():
                    "deployment: the beans are packaged as Java-Bean entries in the JAR",
                    prompt="student@ku:~/qr-component-studio$ unzip -p out/dist/qr-component-suite-1.0.0.jar META-INF/MANIFEST.MF",
                    width_chars=110)
-
-    # ------------------------------------------------------------------ 5. HTTP assembly
-    server = subprocess.Popen(
-        f'java -cp "{CP_MAIN}" ke.ku.sco310.qr.web.QrHttpServiceComponent --port 8210',
-        shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-    try:
-        import time
-        time.sleep(4)
-        headers = sh('curl -s -D - -o /tmp/http-artifact.png '
-                     '"http://localhost:8210/qr?text=http%3A%2F%2Fwww.ku.ac.ke&ec=Q&format=png&moduleSize=8"')
-        stats = sh('curl -s http://localhost:8210/stats')
-        history = sh('curl -s "http://localhost:8210/history?limit=2"')
-        sh('curl -s -o docs/screenshots/http-service-symbol.png '
-           '"http://localhost:8210/qr?text=http%3A%2F%2Fwww.ku.ac.ke&ec=Q&format=png&moduleSize=8"')
-        terminal_image(headers.splitlines() + ["", "$ curl -s http://localhost:8210/stats"]
-                       + stats.splitlines() + ["", "$ curl -s http://localhost:8210/history?limit=2"]
-                       + history.splitlines(), f"{SHOTS}/15-http-service.png",
-                       "web service assembly: one URL, renderer component chosen per request",
-                       prompt="student@ku:~/qr-component-studio$ java -cp out/classes:lib/* ke.ku.sco310.qr.web.QrHttpServiceComponent --port 8210",
-                       width_chars=120)
-    finally:
-        server.terminate()
 
     # ------------------------------------------------------------------ 6. source listings
     listings = [

@@ -2,14 +2,14 @@
 
 [![CI](https://github.com/f4zzie/Component-Programming-Project/actions/workflows/ci.yml/badge.svg)](https://github.com/f4zzie/Component-Programming-Project/actions/workflows/ci.yml)
 [![Java 11+](https://img.shields.io/badge/Java-11%2B-orange)](https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html)
-[![Verification](https://img.shields.io/badge/verification-159%20passing-brightgreen)](src/test/java/ke/ku/sco310/qr/test/VerificationRunner.java)
+[![Verification](https://img.shields.io/badge/verification-152%20passing-brightgreen)](src/test/java/ke/ku/sco310/qr/test/VerificationRunner.java)
 [![Coursework](https://img.shields.io/badge/course-SCO%20310%20%2F%20SIT%20300-blue)](docs/Documentation.md)
 
 **QR Studio** is a QR Code generator assembled from interchangeable JavaBeans components for
 Kenyatta University's SCO 310 / SIT 300 Component Programming coursework.
 
 The application is assembled rather than written as one monolithic program. The same component set
-drives a Swing desktop application, an HTTP service and a command-line interface. Encoders,
+drives a Swing desktop application and a command-line interface. Encoders,
 renderers and decoders are replaceable at runtime through provided interfaces and Java's
 `ServiceLoader` mechanism.
 
@@ -34,7 +34,6 @@ java -jar QrStudio.jar
 - [Component catalogue](#component-catalogue)
 - [Getting started](#getting-started)
 - [CLI](#cli)
-- [HTTP service](#http-service)
 - [Architecture and SPI discovery](#architecture-and-spi-discovery)
 - [Testing and quality](#testing-and-quality)
 - [Project structure](#project-structure)
@@ -75,19 +74,16 @@ source tree.
 
 - Swing desktop application in `QrStudio.jar`.
 - CLI commands for generation, decoding, CSV batch processing and component listing.
-- HTTP endpoints for QR generation, health, history, statistics and catalogue discovery.
-- HTTP payload limits, request logging, renderer reuse, JSON escaping and optional CORS.
 
 ## Screenshots
 
-The existing coursework evidence includes the running desktop assembly, renderer replacement, HTTP
-service and component architecture:
+The existing coursework material includes the running desktop assembly, renderer replacement and component architecture:
 
 | Desktop PNG assembly | Desktop SVG assembly |
 |---|---|
 | [![PNG renderer](docs/screenshots/03-gui-png-assembly.png)](docs/screenshots/03-gui-png-assembly.png) | [![SVG renderer](docs/screenshots/04-gui-svg-assembly.png)](docs/screenshots/04-gui-svg-assembly.png) |
-| **ASCII renderer** | **HTTP service** |
-| [![ASCII renderer](docs/screenshots/05-gui-ascii-assembly.png)](docs/screenshots/05-gui-ascii-assembly.png) | [![HTTP service](docs/screenshots/15-http-service.png)](docs/screenshots/15-http-service.png) |
+| **ASCII renderer** |  |
+| [![ASCII renderer](docs/screenshots/05-gui-ascii-assembly.png)](docs/screenshots/05-gui-ascii-assembly.png) |  |
 
 The architecture and verification evidence are also available as full-size images:
 
@@ -155,7 +151,7 @@ java -Djava.awt.headless=true -cp out/classes \
 AssemblyProfile profile = AssemblyProfile.load(new File("config/assembly.xml"));
 QrAssembly assembly = new ComponentRegistry().build(profile);
 QrGenerationResult result = assembly.generate(
-        "https://www.ku.ac.ke/sco310", QrErrorCorrection.QUARTILE);
+        "Kenyatta University", QrErrorCorrection.QUARTILE);
 
 assembly.replaceRenderer(new SvgRendererBean());
 System.out.println(result.getStoredFile());
@@ -188,29 +184,6 @@ standard output. `batch` writes `batch-summary.txt`, reports each failed row and
 10 when one or more rows fail. Other meaningful exit codes are 2 for usage, 3 for invalid input,
 4 for an operation failure and 5 for I/O errors.
 
-## HTTP service
-
-Start the HTTP assembly with:
-
-```bash
-java -cp "out/classes:lib/*" \
-  ke.ku.sco310.qr.web.QrHttpServiceComponent \
-  --port 8099 --max-payload-bytes 4096 --cors-origin '*'
-```
-
-| Endpoint | Purpose |
-|---|---|
-| `GET /` | HTML form and assembly summary |
-| `GET /qr?text=HELLO&format=svg&ec=M` | Generate PNG, SVG, ASCII, rounded PNG or PDF output |
-| `GET /components` | JSON catalogue of discovered providers |
-| `GET /stats` | JSON request, generation, history and wiring statistics |
-| `GET /history?limit=10` | JSON persisted generation history |
-| `GET /health` | `OK` health response |
-
-The default UTF-8 payload limit is 4096 bytes; oversized requests receive HTTP 413. Each response
-produces a small request-log line. Renderer instances are cached by format and configuration,
-JSON strings escape control characters and non-ASCII characters, and CORS is opt-in.
-
 ## Architecture and SPI discovery
 
 Provider files under `src/main/resources/META-INF/services/` register encoders, renderers, decoders
@@ -239,7 +212,7 @@ java -Djava.awt.headless=true -cp out/classes \
 mvn test
 ```
 
-The current suite reports **159 checks, 159 passed, 0 failed**, including:
+The current suite reports **152 checks, 152 passed, 0 failed**, including:
 
 - 160/160 ISO/IEC 18004 parameter combinations matching ZXing tables;
 - standard QR payload round trips across all error-correction levels;
@@ -248,7 +221,6 @@ The current suite reports **159 checks, 159 passed, 0 failed**, including:
 - decoder round trips for matrices, PNG, SVG and ASCII artifacts;
 - renderer, PDF, logo-coverage and JavaBean contract checks;
 - CLI generation, decoding, batch errors and live component listing;
-- HTTP status, CORS, JSON escaping, payload-limit and renderer-cache checks;
 - JDK 11-targeted `-Xlint:all` compilation and SPI-inclusive JAR packaging.
 
 Generated evidence can be redirected with `QR_EVIDENCE_DIR`, `qr.evidence.dir` or an explicit
@@ -263,7 +235,6 @@ src/main/java/ke/ku/sco310/qr/engine/       dependency-free QR and Micro QR engi
 src/main/java/ke/ku/sco310/qr/render/       PNG, SVG, ASCII, rounded and PDF renderers
 src/main/java/ke/ku/sco310/qr/facade/       registry, profile, facade and assembly
 src/main/java/ke/ku/sco310/qr/cli/          command-line front end
-src/main/java/ke/ku/sco310/qr/web/          HTTP front end and JSON helper
 src/main/java/ke/ku/sco310/qr/ui/           Swing desktop front end
 src/main/resources/META-INF/services/      ServiceLoader provider declarations
 src/test/java/ke/ku/sco310/qr/test/         custom verification harness and tests

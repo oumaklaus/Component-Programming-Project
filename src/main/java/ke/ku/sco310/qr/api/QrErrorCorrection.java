@@ -31,7 +31,7 @@ public enum QrErrorCorrection {
         this.nominalRecoveryPercent = nominalRecoveryPercent;
     }
 
-    /** @return single-letter label used by the specification and by the HTTP front end. */
+    /** @return single-letter label used by the QR specification. */
     public String getLabel() {
         return label;
     }

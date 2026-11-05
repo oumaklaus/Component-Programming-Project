@@ -1,4 +1,4 @@
 renderer,configuration,size,bytes,reconstructed
-PNG,moduleSize=11,quietZone=4,pixels=451,bytes=4671,decoded=true
-SVG,moduleSize=10,quietZone=4,rects=297,bytes=15454,decoded=true
-ASCII,glyph=2 chars,border=2,bytes=5083,decoded=true
+PNG,moduleSize=11,quietZone=4,pixels=363,bytes=2583,decoded=true
+SVG,moduleSize=10,quietZone=4,rects=167,bytes=8847,decoded=true
+ASCII,glyph=2 chars,border=2,bytes=2999,decoded=true

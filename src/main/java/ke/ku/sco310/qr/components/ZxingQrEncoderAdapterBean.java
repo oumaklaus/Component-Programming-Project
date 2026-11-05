@@ -24,17 +24,7 @@ import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
 
-/**
- * Adapter component that exposes the third-party ZXing engine through this suite's own
- * {@link QrCodeEncoder} interface.
- *
- * <p><b>Why this class exists.</b> It is the project's worked example of interface
- * standardisation: the foreign component was never designed against our contract, so an
- * adapter translates the call and the returned data structure. Once the adapter exists, the
- * rest of the assembly (renderers, repository, facade, GUI, HTTP service) is source-code
- * unchanged and cannot tell which engine produced the symbol - the replaceability property
- * demanded by component-oriented programming.</p>
- */
+/** Adapter component that exposes the third-party ZXing engine through this suite's own QrCodeEncoder interface. */
 public class ZxingQrEncoderAdapterBean implements QrCodeEncoder, Serializable, BoundPropertySource {
 
     private static final long serialVersionUID = 1L;

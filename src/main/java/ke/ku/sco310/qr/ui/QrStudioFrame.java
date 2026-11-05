@@ -49,20 +49,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
-/**
- * Swing assembly of the component suite (front end number one).
- *
- * <p>The frame owns no domain logic. It holds an {@link QrAssembly}, forwards user gestures to the
- * facade component and reacts to the components' <em>bound properties</em> and <em>events</em>:</p>
- * <ul>
- *   <li>the output-format combo replaces the renderer component and re-renders the preview;</li>
- *   <li>the history list is refreshed from the {@code QrHistoryBean} indexed property events;</li>
- *   <li>the audit listener prints to the status area through the generation event.</li>
- * </ul>
- *
- * <p>This is the visual-assembly part of chapter 3 ("Connection model" / "Techniques of COP with
- * JavaBeans") implemented with plain Swing instead of the original BeanBox.</p>
- */
+/** Swing assembly of the component suite (front end number one). */
 public class QrStudioFrame extends JFrame implements PropertyChangeListener {
 
     private static final long serialVersionUID = 1L;
@@ -362,11 +349,7 @@ public class QrStudioFrame extends JFrame implements PropertyChangeListener {
                 + " | renderer=" + assembly.getRenderer().describeConfiguration();
     }
 
-    /**
-     * Preview label that paints the rendered artifact scaled down to fit its panel, preserving the
-     * aspect ratio. Nearest-neighbour interpolation is used so that module edges stay crisp, and the
-     * image is never enlarged above 1:1 because a QR Code must stay pixel-exact when magnified.
-     */
+    /** Preview label that paints the rendered artifact scaled down to fit its panel, preserving the aspect ratio. */
     private static final class FitLabel extends JLabel {
 
         private static final long serialVersionUID = 1L;

@@ -63,7 +63,7 @@ final class AssemblyTest {
         assembly.getRepository().clearHistory();
 
         // ---------------------------------------------------------------- end to end
-        String payload = "https://www.ku.ac.ke/sco310/component-programming";
+        String payload = "Kenyatta University";
         QrGenerationResult result = assembly.generate(payload, QrErrorCorrection.QUARTILE);
         harness.check("assembly.end-to-end", "generation stores an artifact and returns the path",
                 result.getStoredFile() != null && result.getStoredFile().isFile()

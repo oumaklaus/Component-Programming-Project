@@ -18,14 +18,7 @@ import java.io.Serializable;
 import java.util.Locale;
 import javax.imageio.ImageIO;
 
-/**
- * Raster renderer component: draws the symbol as a square PNG image.
- *
- * <p>Design-time configurable properties (chapter 3, "Customization"): module size in pixels,
- * quiet zone width in modules, foreground and background colours. Every property is bound, so a
- * builder tool - or the project's own Swing assembly - can refresh a live preview by listening
- * for {@code PropertyChangeEvent}s instead of polling.</p>
- */
+/** Raster renderer component: draws the symbol as a square PNG image. */
 public class PngRendererBean implements QrCodeRenderer, Serializable, BoundPropertySource {
 
     private static final long serialVersionUID = 1L;
@@ -66,13 +59,7 @@ public class PngRendererBean implements QrCodeRenderer, Serializable, BoundPrope
         }
     }
 
-    /**
-     * Extra provided method used by the Swing assembly (and by the automated tests) so that the
-     * in-memory image is available without a round trip through the encoded byte array.
-     *
-     * @param symbol symbol to draw
-     * @return the raster image
-     */
+    /** Extra provided method used by the Swing assembly (and by the automated tests) so that the in-memory image is available without a round trip through... */
     public BufferedImage renderToImage(QrCode symbol) {
         int pixelSize = getPixelSize(symbol);
         BufferedImage image = new BufferedImage(pixelSize, pixelSize,

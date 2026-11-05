@@ -3,7 +3,7 @@
   Deployment descriptor of the SCO310 QR component suite.
   It selects one implementation per role and sets design-time property values.
   Edit this file - do not recompile - to re-deploy the same components as a
-  desktop tool, a print shop tool or a web service.
+  desktop tool or a print shop tool.
 -->
 <qr-assembly name="default">
   <!-- provided/required interface pairs are declared in the component catalogue -->

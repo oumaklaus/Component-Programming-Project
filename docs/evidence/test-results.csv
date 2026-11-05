@@ -5,35 +5,84 @@ engine,numeric payload selects numeric mode,pass,expected=Numeric actual=Numeric
 engine,upper-case payload selects alphanumeric mode,pass,expected=Alphanumeric actual=Alphanumeric,0
 engine,mixed case payload selects byte mode,pass,expected=Byte actual=Byte,0
 engine,compact mode lowers the symbol version,pass,numeric v1 vs alphanumeric v1,0
+engine,all-Kanji payloads round trip through the ZXing decoder,pass,"3 decoded, 0 failed",0
+engine,all-Kanji payload selects the kanji mode,pass,expected=Kanji actual=Kanji,0
+engine,non-ASCII byte payload is flagged with a UTF-8 ECI segment,pass,Byte round trip true,0
+engine,a mixed ASCII+Japanese payload decodes as UTF-8,pass,expected=éèê café naïve résumé 漢字 actual=éèê café naïve résumé 漢字,0
+engine,mixed-mode segmentation does not exceed a single byte segment,pass,mixed v2 vs byte v2,0
+engine,mixed-mode payloads round trip through the ZXing decoder,pass,"6 decoded, 0 failed",0
 engine,full capacity round trip for all 40 versions x 4 levels,pass,"160 decoded, 0 failed ",0
 engine,encoding is deterministic for equal input,pass,"expected=QrCode{version=2, size=25, ec=Q, mode=Byte, mask=0, chars=17, dataCodewords=22, eccCodewords=22, producer='encoder.pure-java.v1'} actual=QrCode{version=2, size=25, ec=Q, mode=Byte, mask=0, chars=17, dataCodewords=22, eccCodewords=22, producer='encoder.pure-java.v1'}",0
 engine,every forced mask pattern still decodes (0..7),pass,"8/8 masks decoded, masks used [0, 1, 2, 3, 4, 5, 6, 7]",0
 engine,forced mask is reported in the symbol,pass,expected=5 actual=5,0
-engine,encoder publishes its capability metadata,pass,"SCO310 in-house QR engine 1.0.0 [versions 1-40, modes [Numeric, Alphanumeric, Byte], in-house]",0
+engine,encoder publishes its capability metadata,pass,"SCO310 in-house QR engine 1.0.0 [versions 1-40, modes [Numeric, Alphanumeric, Byte, Kanji, Eci], in-house]",0
 engine,maximum byte capacity reported for level L,pass,expected=2953 actual=2953,0
-engine,empty payload is rejected,pass,rejected as expected: QrEncodingException: The payload is empty; a QR Code must carry at least one byte,0
+engine,empty payload is rejected,pass,rejected as expected: QrEncodingException: The payload is empty; a QR Code must carry at least one byte,1
 engine,null payload is rejected,pass,rejected as expected: QrEncodingException: The payload is empty; a QR Code must carry at least one byte,0
-engine,over-capacity payload is rejected with a clear error,pass,"rejected as expected: QrEncodingException: Payload of 200 characters does not fit version 1 at level H (needs 1113 bits, capacity 72 bits). Shorten the payload or lower the error-correction level.",14
-engine,unknown error-correction label is rejected,pass,"rejected as expected: IllegalArgumentException: Unknown error-correction level 'Z'. Expected one of L, M, Q, H",3
+engine,over-capacity payload is rejected with a clear error,pass,"rejected as expected: QrEncodingException: Payload of 200 characters does not fit version 1 at level H (needs 1113 bits, capacity 72 bits). Shorten the payload or lower the error-correction level.",44
+engine,unknown error-correction label is rejected,pass,"rejected as expected: IllegalArgumentException: Unknown error-correction level 'Z'. Expected one of L, M, Q, H",10
 engine,invalid forced mask is rejected,pass,rejected as expected: IllegalArgumentException: forcedMaskPattern must be -1 or 0..7,0
-engine,constrained minimumVersion vetoes an inconsistent window,pass,rejected as expected: PropertyVetoException: minimumVersion 9 would exceed maximumVersion 5,0
-renderer.png,artifact size follows moduleSize and quietZone,pass,expected=246 actual=246,0
-renderer.png,mime type is published for the HTTP service,pass,expected=image/png actual=image/png,0
-renderer.png,PNG artifact decodes back to the payload,pass,expected=https://www.ku.ac.ke/sco310 - renderer check actual=https://www.ku.ac.ke/sco310 - renderer check,0
+engine,constrained minimumVersion vetoes an inconsistent window,pass,rejected as expected: PropertyVetoException: minimumVersion 9 would exceed maximumVersion 5,1
+micro,M1 uses the compact numeric matrix,pass,expected=11 actual=11,0
+micro,M1 has detection-only error correction,pass,expected=null actual=null,0
+micro,M1 reference decoder recovers the payload,pass,expected=123 actual=123,0
+micro,M2 reference decoder recovers alphanumeric data,pass,expected=HELLO actual=HELLO,0
+micro,M3 reference decoder recovers byte data,pass,expected=abc-123 actual=abc-123,0
+micro,M4 reference decoder recovers Kanji data,pass,expected=漢字 actual=漢字,0
+micro,all four Micro mask patterns pass the reference decoder,pass,4/4 masks decoded,0
+micro,HIGH error correction is rejected,pass,"rejected as expected: QrEncodingException: Micro QR supports requested levels L, M and Q only",0
+micro,a non-numeric payload is rejected by M1,pass,rejected as expected: QrEncodingException: Payload does not fit M1..M1 at level L,2
+extensions.decoder,PureJavaQrDecoderBean is a serializable bound JavaBean,pass,public=true noArg=true,0
+extensions.renderer,RoundedModuleRendererBean is a serializable bound JavaBean,pass,public=true noArg=true,0
+extensions.renderer,PdfRendererBean is a serializable bound JavaBean,pass,public=true noArg=true,0
+extensions.encoder,MicroQrEncoderBean is a serializable bound JavaBean,pass,public=true noArg=true,0
+extensions.decoder,ZxingQrDecoderAdapterBean is a serializable bound JavaBean,pass,public=true noArg=true,0
+extensions.decoder,pure decoder reads a symbol matrix,pass,expected=decoder round trip: é 漢字 actual=decoder round trip: é 漢字,0
+extensions.decoder,pure decoder reads version-one format bits,pass,expected=A actual=A,0
+extensions.decoder,pure decoder reads PNG output,pass,expected=decoder round trip: é 漢字 actual=decoder round trip: é 漢字,0
+extensions.decoder,pure decoder reads SVG output,pass,expected=decoder round trip: é 漢字 actual=decoder round trip: é 漢字,0
+extensions.decoder,pure decoder reads ASCII output,pass,expected=decoder round trip: é 漢字 actual=decoder round trip: é 漢字,0
+extensions.decoder,pure decoder rejects a damaged matrix,pass,rejected as expected: QrDecodingException: Reed-Solomon error correction rejected the symbol,2
+extensions.decoder,ZXing decoder adapter reads PNG output,pass,expected=decoder round trip: é 漢字 actual=decoder round trip: é 漢字,0
+extensions.decoder,ZXing adapter rejects a non-PNG artifact,pass,"rejected as expected: QrDecodingException: ZXing adapter accepts PNG artifacts only, not SVG",1
+extensions.rounded,rounded renderer produces PNG output,pass,"RenderedArtifact{format=PNG, 410x410, bytes=11666, by=renderer.rounded-png.v1}",0
+extensions.rounded,unsafe logo coverage is refused,pass,rejected as expected: QrRenderingException: logo covers 64.0% of the symbol but level H nominally recovers 30%,5
+extensions.rounded,unsafe logo coverage can be explicitly warned,pass,logo covers 64.0% of the symbol but level H nominally recovers 30%,0
+extensions.pdf,PDF is a single-page vector document,pass,"10220 bytes, rectangle operators present",0
+extensions.pdf,pure decoder rejects unsupported PDF input,pass,rejected as expected: QrDecodingException: Unsupported artifact format: PDF,1
+extensions.spi,ServiceLoader catalogue contains new providers,pass,catalogue entries=15,0
+extensions.spi,ServiceLoader creates providers by stable id,pass,decoder and PDF renderer loaded through SPI,0
+extensions.spi,unknown SPI component id is rejected,pass,rejected as expected: IllegalArgumentException: Unknown or unavailable decoder component id: decoder.missing.v1,4
+frontends.cli,generate writes the requested renderer artifact,pass,status=0 bytes=6200,0
+frontends.cli,decode recovers a generated artifact,pass,"wrote /home/lacoste/component-programming/qr-component-studio/docs/evidence/work/frontends/cli/hello.svg (6200 bytes, v1)
+CLI hello
+",0
+frontends.cli,list-components publishes the SPI catalogue,pass,status=0,0
+frontends.batch,batch writes successes and reports row errors,pass,"total=2 succeeded=1 failed=1
+OK row 2: /home/lacoste/component-programming/qr-component-studio/docs/evidence/work/frontends/cli/batch/one.svg (SVG)
+ERROR row 3: Unknown error-correction level 'Z'. Expected one of L, M, Q, H
+",0
+tooling,compilation enables all lint categories portably,pass,"[--release, 11, -Xlint:all, -d, scratch/classes, -cp, test-classpath]",0
+tooling,compilation targets Java 11 with the supplied output and classpath,pass,"[--release, 11, -Xlint:all, -d, scratch/classes, -cp, test-classpath]",0
+tooling,verification child inherits explicit headless mode,pass,"[/usr/lib/jvm/java-21-openjdk/bin/java, -Djava.awt.headless=true, -cp, test-classpath, test.Main, evidence]",0
+tooling,explicit graphical child mode is not silently overridden,pass,explicit false propagated,0
+renderer.png,artifact size follows moduleSize and quietZone,pass,expected=198 actual=198,0
+renderer.png,PNG mime type is published,pass,expected=image/png actual=image/png,0
+renderer.png,PNG artifact decodes back to the payload,pass,expected=Kenyatta University actual=Kenyatta University,0
 renderer.png,quiet zone is painted with the background colour,pass,"expected=java.awt.Color[r=255,g=255,b=255] actual=java.awt.Color[r=255,g=255,b=255]",0
-renderer.png,every module is painted at the right position and colour,pass,0 of 1089 modules mismatched,0
-renderer.png,bound moduleSize property resizes the artifact,pass,before=246px after=451px,0
+renderer.png,every module is painted at the right position and colour,pass,0 of 625 modules mismatched,0
+renderer.png,bound moduleSize property resizes the artifact,pass,before=198px after=363px,0
 renderer.svg,document declares absolute millimetre dimensions,pass,"first 60 chars: <?xml version=""1.0"" encoding=""UTF-8""?> <svg xmlns=""http://ww",0
 renderer.svg,declares the vector namespace,pass,svg root present,0
-renderer.svg,horizontal run merging reduces the element count,pass,merged=297 single=577,0
+renderer.svg,horizontal run merging reduces the element count,pass,merged=167 single=322,0
 renderer.svg,parsing the SVG back reproduces the module matrix,pass,0 module mismatches,0
-renderer.svg,switching the optimisation off restores one rect per module,pass,rects=577 darkModules=577,0
+renderer.svg,switching the optimisation off restores one rect per module,pass,rects=322 darkModules=322,0
 renderer.ascii,parsing the text art reproduces the module matrix,pass,0 module mismatches,0
 renderer.ascii,artifact is flagged as textual,pass,expected=true actual=true,0
 renderer,three renderer components fill the same role without changes,pass,"PNG, SVG, ASCII",0
-renderer,artifacts carry the identifier of the component that produced them,pass,renderer.png.v1 / renderer.svg.v1 (297 rects) / renderer.ascii.v1,0
+renderer,artifacts carry the identifier of the component that produced them,pass,renderer.png.v1 / renderer.svg.v1 (167 rects) / renderer.ascii.v1,0
 renderer,custom property editor parses #RRGGBB,pass,expected=#1B5E20 actual=#1B5E20,0
-renderer,invalid colour text is rejected,pass,rejected as expected: IllegalArgumentException: '#12GG45' is not a hexadecimal colour,0
+renderer,invalid colour text is rejected,pass,rejected as expected: IllegalArgumentException: '#12GG45' is not a hexadecimal colour,1
 renderer,invalid module size is rejected,pass,rejected as expected: IllegalArgumentException: moduleSize must be 1..64,0
 renderer,negative control: a corrupted PNG no longer decodes,pass,decoder rejected the damaged artifact as expected,0
 beans,PureJavaQrEncoderBean: public class with a no-argument constructor,pass,public=true noArgConstructor=true,0
@@ -83,27 +132,27 @@ beans.persistence,the restored assembly can generate without recompiling,pass,ar
 beans.persistence,the assembly profile survives an XML round trip,pass,Assembly profile 'round-trip':   encoder     -> encoder.pure-java.v1   renderer    -> renderer.svg.v1                  moduleSize = 9   repository  -> repository.file-system.v1   history     -> history.bounded-memory.v1   listener    -> listener.audit-log.v1   facade      -> facade.qr-studio.v1 ,0
 beans.optional,the assembly detects the optional third-party component,pass,com.google.zxing.core present=true,0
 beans.optional,the adapter reports itself as a third-party component,pass,"ZXing (""Zebra Crossing"") core 3.5.3 [versions 1-40, modes [Numeric, Alphanumeric, Byte], third-party, optional library required]",0
-assembly.catalogue,every role has at least one implementation,pass,encoders=2 renderers=3 repositories=2,0
+assembly.catalogue,every role has at least one implementation,pass,encoders=2 renderers=5 repositories=2,0
 assembly.catalogue,the optional component declares its context dependency,pass,adapter declared with an explicit required interface,0
 assembly.wiring,every declared dependency of the assembly is satisfied,pass,encoder       -> facade.setEncoder     : OK | renderer      -> facade.setRenderer    : OK | repository    -> facade.setRepository  : OK | history       -> facade.setHistory     : OK | listener      -> facade event source   : OK | encoder       -> optional ZXing library : PRESENT,0
 assembly.wiring,profile properties reached the component instances,pass,moduleSize=7,0
-assembly.end-to-end,generation stores an artifact and returns the path,pass,docs/evidence/work/assembly-test-1792994609042/qr-code-v5-q-20261026-090329.png,0
-assembly.end-to-end,the stored PNG decodes back to the payload,pass,expected=https://www.ku.ac.ke/sco310/component-programming actual=https://www.ku.ac.ke/sco310/component-programming,0
+assembly.end-to-end,generation stores an artifact and returns the path,pass,/home/lacoste/component-programming/qr-component-studio/docs/evidence/work/assembly-test-1793734114376/qr-code-v2-q-20261103-222834.png,0
+assembly.end-to-end,the stored PNG decodes back to the payload,pass,expected=Kenyatta University actual=Kenyatta University,0
 assembly.end-to-end,history and audit counters were updated,pass,history=1 audit=1 facade=1,0
 assembly.end-to-end,the repository persisted the history record,pass,expected=1 actual=1,0
 assembly.replace,the assembly runs with a different renderer component,pass,expected=SVG actual=SVG,0
 assembly.replace,the choice is recorded in the profile,pass,renderer.svg.v1,0
 assembly.replace,a third renderer drops in without recompiling,pass,expected=ASCII actual=ASCII,0
-assembly.replace,all three renderers produced the same symbol,pass,"version 5, mask 7 for PNG, SVG and ASCII",0
-assembly.replace,the third-party encoder satisfies the same contract,pass,expected=https://www.ku.ac.ke/sco310/component-programming actual=https://www.ku.ac.ke/sco310/component-programming,0
+assembly.replace,all three renderers produced the same symbol,pass,"version 2, mask 2 for PNG, SVG and ASCII",0
+assembly.replace,the third-party encoder satisfies the same contract,pass,expected=Kenyatta University actual=Kenyatta University,0
 assembly.replace,the facade now reports the adapter as its encoder,pass,encoder.zxing-adapter.v1,0
 assembly.negative,generating without an encoder fails loudly,pass,rejected as expected: QrEncodingException: No encoder component is connected: call setEncoder(...) before generating,0
-assembly.negative,an unknown component id is rejected at assembly time,pass,rejected as expected: IllegalArgumentException: Unknown renderer component id: renderer.does-not-exist.v1,1
+assembly.negative,an unknown component id is rejected at assembly time,pass,rejected as expected: IllegalArgumentException: Unknown or unavailable renderer component id: renderer.does-not-exist.v1,9
 assembly.negative,"a profile property the selected component does not declare is reported, not fatal",pass,[not applicable to component renderer.ascii.v1 (property not declared): component renderer.ascii.v1.moduleSize],0
 assembly.repository,clearHistory empties the persisted history,pass,expected=0 actual=0,0
 assembly.repository,a new record is persisted immediately,pass,expected=1 actual=1,0
-assembly.repository,reinstantiating the repository component reads the same history file,pass,history file /home/lacoste/component-programming/qr-component-studio/docs/evidence/work/assembly-test-1792994609042/history.ser,0
+assembly.repository,reinstantiating the repository component reads the same history file,pass,history file /home/lacoste/component-programming/qr-component-studio/docs/evidence/work/assembly-test-1793734114376/history.ser,0
 assembly.history,the in-memory history honours its capacity policy,pass,entries=2 discarded=5,0
-gallery,the third-party adapter component produces decodable artifacts,pass,v3 mask 4 by encoder.zxing-adapter.v1,0
-gallery,the assembled application writes gallery artifacts,pass,docs/evidence/gallery/assembled-app.png,0
+gallery,the third-party adapter component produces decodable artifacts,pass,v2 mask 2 by encoder.zxing-adapter.v1,0
+gallery,the assembled application writes gallery artifacts,pass,/home/lacoste/component-programming/qr-component-studio/docs/evidence/gallery/assembled-app.png,0
 gallery,"gallery contains PNG, SVG and ASCII artifacts",pass,/home/lacoste/component-programming/qr-component-studio/docs/evidence/gallery,0

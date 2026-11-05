@@ -1,6 +1,6 @@
 SCO310 QR component suite - automated verification transcript
-generated: Mon Oct 26 09:03:29 EAT 2026
-java: 21.0.13.0.2 (Arch Linux)
+generated: Tue Nov 03 22:28:35 EAT 2026
+java: 21.0.13.0.3 (Arch Linux)
 host: Linux amd64
 
 
@@ -11,11 +11,17 @@ host: Linux amd64
   PASS upper-case payload selects alphanumeric mode         expected=Alphanumeric actual=Alphanumeric
   PASS mixed case payload selects byte mode                 expected=Byte actual=Byte
   PASS compact mode lowers the symbol version               numeric v1 vs alphanumeric v1
+  PASS all-Kanji payloads round trip through the ZXing d... 3 decoded, 0 failed
+  PASS all-Kanji payload selects the kanji mode             expected=Kanji actual=Kanji
+  PASS non-ASCII byte payload is flagged with a UTF-8 EC... Byte round trip true
+  PASS a mixed ASCII+Japanese payload decodes as UTF-8      expected=éèê café naïve résumé 漢字 actual=éèê café naïve résumé 漢字
+  PASS mixed-mode segmentation does not exceed a single ... mixed v2 vs byte v2
+  PASS mixed-mode payloads round trip through the ZXing ... 6 decoded, 0 failed
   PASS full capacity round trip for all 40 versions x 4 ... 160 decoded, 0 failed 
   PASS encoding is deterministic for equal input            expected=QrCode{version=2, size=25, ec=Q, mode=Byte, mask=0, chars=17, dataCodewords=22, eccCodewords=22, producer='encoder.pure-java.v1'} actual=QrCode{version=2, size=25, ec=Q, mode=Byte, mask=0, chars=17, dataCodewords=22, eccCodewords=22, producer='encoder.pure-java.v1'}
   PASS every forced mask pattern still decodes (0..7)       8/8 masks decoded, masks used [0, 1, 2, 3, 4, 5, 6, 7]
   PASS forced mask is reported in the symbol                expected=5 actual=5
-  PASS encoder publishes its capability metadata            SCO310 in-house QR engine 1.0.0 [versions 1-40, modes [Numeric, Alphanumeric, Byte], in-house]
+  PASS encoder publishes its capability metadata            SCO310 in-house QR engine 1.0.0 [versions 1-40, modes [Numeric, Alphanumeric, Byte, Kanji, Eci], in-house]
   PASS maximum byte capacity reported for level L           expected=2953 actual=2953
   PASS empty payload is rejected                            rejected as expected: QrEncodingException: The payload is empty; a QR Code must carry at least one byte
   PASS null payload is rejected                             rejected as expected: QrEncodingException: The payload is empty; a QR Code must carry at least one byte
@@ -24,20 +30,85 @@ host: Linux amd64
   PASS invalid forced mask is rejected                      rejected as expected: IllegalArgumentException: forcedMaskPattern must be -1 or 0..7
   PASS constrained minimumVersion vetoes an inconsistent... rejected as expected: PropertyVetoException: minimumVersion 9 would exceed maximumVersion 5
 
+[micro]
+  PASS M1 uses the compact numeric matrix                   expected=11 actual=11
+  PASS M1 has detection-only error correction               expected=null actual=null
+  PASS M1 reference decoder recovers the payload            expected=123 actual=123
+  PASS M2 reference decoder recovers alphanumeric data      expected=HELLO actual=HELLO
+  PASS M3 reference decoder recovers byte data              expected=abc-123 actual=abc-123
+  PASS M4 reference decoder recovers Kanji data             expected=漢字 actual=漢字
+  PASS all four Micro mask patterns pass the reference d... 4/4 masks decoded
+  PASS HIGH error correction is rejected                    rejected as expected: QrEncodingException: Micro QR supports requested levels L, M and Q only
+  PASS a non-numeric payload is rejected by M1              rejected as expected: QrEncodingException: Payload does not fit M1..M1 at level L
+
+[extensions.decoder]
+  PASS PureJavaQrDecoderBean is a serializable bound Jav... public=true noArg=true
+
+[extensions.renderer]
+  PASS RoundedModuleRendererBean is a serializable bound... public=true noArg=true
+  PASS PdfRendererBean is a serializable bound JavaBean     public=true noArg=true
+
+[extensions.encoder]
+  PASS MicroQrEncoderBean is a serializable bound JavaBean  public=true noArg=true
+
+[extensions.decoder]
+  PASS ZxingQrDecoderAdapterBean is a serializable bound... public=true noArg=true
+  PASS pure decoder reads a symbol matrix                   expected=decoder round trip: é 漢字 actual=decoder round trip: é 漢字
+  PASS pure decoder reads version-one format bits           expected=A actual=A
+  PASS pure decoder reads PNG output                        expected=decoder round trip: é 漢字 actual=decoder round trip: é 漢字
+  PASS pure decoder reads SVG output                        expected=decoder round trip: é 漢字 actual=decoder round trip: é 漢字
+  PASS pure decoder reads ASCII output                      expected=decoder round trip: é 漢字 actual=decoder round trip: é 漢字
+  PASS pure decoder rejects a damaged matrix                rejected as expected: QrDecodingException: Reed-Solomon error correction rejected the symbol
+  PASS ZXing decoder adapter reads PNG output               expected=decoder round trip: é 漢字 actual=decoder round trip: é 漢字
+  PASS ZXing adapter rejects a non-PNG artifact             rejected as expected: QrDecodingException: ZXing adapter accepts PNG artifacts only, not SVG
+
+[extensions.rounded]
+  PASS rounded renderer produces PNG output                 RenderedArtifact{format=PNG, 410x410, bytes=11666, by=renderer.rounded-png.v1}
+  PASS unsafe logo coverage is refused                      rejected as expected: QrRenderingException: logo covers 64.0% of the symbol but level H nominally recovers 30%
+  PASS unsafe logo coverage can be explicitly warned        logo covers 64.0% of the symbol but level H nominally recovers 30%
+
+[extensions.pdf]
+  PASS PDF is a single-page vector document                 10220 bytes, rectangle operators present
+  PASS pure decoder rejects unsupported PDF input           rejected as expected: QrDecodingException: Unsupported artifact format: PDF
+
+[extensions.spi]
+  PASS ServiceLoader catalogue contains new providers       catalogue entries=15
+  PASS ServiceLoader creates providers by stable id         decoder and PDF renderer loaded through SPI
+  PASS unknown SPI component id is rejected                 rejected as expected: IllegalArgumentException: Unknown or unavailable decoder component id: decoder.missing.v1
+
+[frontends.cli]
+  PASS generate writes the requested renderer artifact      status=0 bytes=6200
+  PASS decode recovers a generated artifact                 wrote /home/lacoste/component-programming/qr-component-studio/docs/evidence/work/frontends/cli/hello.svg (6200 bytes, v1)
+CLI hello
+
+  PASS list-components publishes the SPI catalogue          status=0
+
+[frontends.batch]
+  PASS batch writes successes and reports row errors        total=2 succeeded=1 failed=1
+OK row 2: /home/lacoste/component-programming/qr-component-studio/docs/evidence/work/frontends/cli/batch/one.svg (SVG)
+ERROR row 3: Unknown error-correction level 'Z'. Expected one of L, M, Q, H
+
+
+[tooling]
+  PASS compilation enables all lint categories portably     [--release, 11, -Xlint:all, -d, scratch/classes, -cp, test-classpath]
+  PASS compilation targets Java 11 with the supplied out... [--release, 11, -Xlint:all, -d, scratch/classes, -cp, test-classpath]
+  PASS verification child inherits explicit headless mode   [/usr/lib/jvm/java-21-openjdk/bin/java, -Djava.awt.headless=true, -cp, test-classpath, test.Main, evidence]
+  PASS explicit graphical child mode is not silently ove... explicit false propagated
+
 [renderer.png]
-  PASS artifact size follows moduleSize and quietZone       expected=246 actual=246
-  PASS mime type is published for the HTTP service          expected=image/png actual=image/png
-  PASS PNG artifact decodes back to the payload             expected=https://www.ku.ac.ke/sco310 - renderer check actual=https://www.ku.ac.ke/sco310 - renderer check
+  PASS artifact size follows moduleSize and quietZone       expected=198 actual=198
+  PASS PNG mime type is published                           expected=image/png actual=image/png
+  PASS PNG artifact decodes back to the payload             expected=Kenyatta University actual=Kenyatta University
   PASS quiet zone is painted with the background colour     expected=java.awt.Color[r=255,g=255,b=255] actual=java.awt.Color[r=255,g=255,b=255]
-  PASS every module is painted at the right position and... 0 of 1089 modules mismatched
-  PASS bound moduleSize property resizes the artifact       before=246px after=451px
+  PASS every module is painted at the right position and... 0 of 625 modules mismatched
+  PASS bound moduleSize property resizes the artifact       before=198px after=363px
 
 [renderer.svg]
   PASS document declares absolute millimetre dimensions     first 60 chars: <?xml version="1.0" encoding="UTF-8"?> <svg xmlns="http://ww
   PASS declares the vector namespace                        svg root present
-  PASS horizontal run merging reduces the element count     merged=297 single=577
+  PASS horizontal run merging reduces the element count     merged=167 single=322
   PASS parsing the SVG back reproduces the module matrix    0 module mismatches
-  PASS switching the optimisation off restores one rect ... rects=577 darkModules=577
+  PASS switching the optimisation off restores one rect ... rects=322 darkModules=322
 
 [renderer.ascii]
   PASS parsing the text art reproduces the module matrix    0 module mismatches
@@ -45,7 +116,7 @@ host: Linux amd64
 
 [renderer]
   PASS three renderer components fill the same role with... PNG, SVG, ASCII
-  PASS artifacts carry the identifier of the component t... renderer.png.v1 / renderer.svg.v1 (297 rects) / renderer.ascii.v1
+  PASS artifacts carry the identifier of the component t... renderer.png.v1 / renderer.svg.v1 (167 rects) / renderer.ascii.v1
   PASS custom property editor parses #RRGGBB                expected=#1B5E20 actual=#1B5E20
   PASS invalid colour text is rejected                      rejected as expected: IllegalArgumentException: '#12GG45' is not a hexadecimal colour
   PASS invalid module size is rejected                      rejected as expected: IllegalArgumentException: moduleSize must be 1..64
@@ -115,7 +186,7 @@ host: Linux amd64
   PASS the adapter reports itself as a third-party compo... ZXing ("Zebra Crossing") core 3.5.3 [versions 1-40, modes [Numeric, Alphanumeric, Byte], third-party, optional library required]
 
 [assembly.catalogue]
-  PASS every role has at least one implementation           encoders=2 renderers=3 repositories=2
+  PASS every role has at least one implementation           encoders=2 renderers=5 repositories=2
   PASS the optional component declares its context depen... adapter declared with an explicit required interface
 
 [assembly.wiring]
@@ -123,8 +194,8 @@ host: Linux amd64
   PASS profile properties reached the component instances   moduleSize=7
 
 [assembly.end-to-end]
-  PASS generation stores an artifact and returns the path   docs/evidence/work/assembly-test-1792994609042/qr-code-v5-q-20261026-090329.png
-  PASS the stored PNG decodes back to the payload           expected=https://www.ku.ac.ke/sco310/component-programming actual=https://www.ku.ac.ke/sco310/component-programming
+  PASS generation stores an artifact and returns the path   /home/lacoste/component-programming/qr-component-studio/docs/evidence/work/assembly-test-1793734114376/qr-code-v2-q-20261103-222834.png
+  PASS the stored PNG decodes back to the payload           expected=Kenyatta University actual=Kenyatta University
   PASS history and audit counters were updated              history=1 audit=1 facade=1
   PASS the repository persisted the history record          expected=1 actual=1
 
@@ -132,31 +203,31 @@ host: Linux amd64
   PASS the assembly runs with a different renderer compo... expected=SVG actual=SVG
   PASS the choice is recorded in the profile                renderer.svg.v1
   PASS a third renderer drops in without recompiling        expected=ASCII actual=ASCII
-  PASS all three renderers produced the same symbol         version 5, mask 7 for PNG, SVG and ASCII
-  PASS the third-party encoder satisfies the same contract  expected=https://www.ku.ac.ke/sco310/component-programming actual=https://www.ku.ac.ke/sco310/component-programming
+  PASS all three renderers produced the same symbol         version 2, mask 2 for PNG, SVG and ASCII
+  PASS the third-party encoder satisfies the same contract  expected=Kenyatta University actual=Kenyatta University
   PASS the facade now reports the adapter as its encoder    encoder.zxing-adapter.v1
 
 [assembly.negative]
   PASS generating without an encoder fails loudly           rejected as expected: QrEncodingException: No encoder component is connected: call setEncoder(...) before generating
-  PASS an unknown component id is rejected at assembly time rejected as expected: IllegalArgumentException: Unknown renderer component id: renderer.does-not-exist.v1
+  PASS an unknown component id is rejected at assembly time rejected as expected: IllegalArgumentException: Unknown or unavailable renderer component id: renderer.does-not-exist.v1
   PASS a profile property the selected component does no... [not applicable to component renderer.ascii.v1 (property not declared): component renderer.ascii.v1.moduleSize]
 
 [assembly.repository]
   PASS clearHistory empties the persisted history           expected=0 actual=0
   PASS a new record is persisted immediately                expected=1 actual=1
-  PASS reinstantiating the repository component reads th... history file /home/lacoste/component-programming/qr-component-studio/docs/evidence/work/assembly-test-1792994609042/history.ser
+  PASS reinstantiating the repository component reads th... history file /home/lacoste/component-programming/qr-component-studio/docs/evidence/work/assembly-test-1793734114376/history.ser
 
 [assembly.history]
   PASS the in-memory history honours its capacity policy    entries=2 discarded=5
 
 [gallery]
-  PASS the third-party adapter component produces decoda... v3 mask 4 by encoder.zxing-adapter.v1
-  PASS the assembled application writes gallery artifacts   docs/evidence/gallery/assembled-app.png
+  PASS the third-party adapter component produces decoda... v2 mask 2 by encoder.zxing-adapter.v1
+  PASS the assembled application writes gallery artifacts   /home/lacoste/component-programming/qr-component-studio/docs/evidence/gallery/assembled-app.png
   PASS gallery contains PNG, SVG and ASCII artifacts        /home/lacoste/component-programming/qr-component-studio/docs/evidence/gallery
 
-note: assembly storage directory: /home/lacoste/component-programming/qr-component-studio/docs/evidence/work/assembly-test-1792994609042
+note: assembly storage directory: /home/lacoste/component-programming/qr-component-studio/docs/evidence/work/assembly-test-1793734114376
 
-TOTAL 108 checks, 108 passed, 0 failed
+TOTAL 152 checks, 152 passed, 0 failed
 
 
 ISO/IEC 18004 parameter table cross-check: 160 version/level combinations compared with the ZXing tables, 0 mismatches.

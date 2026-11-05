@@ -13,24 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * In-memory history component whose main property is an <b>indexed</b> property.
- *
- * <p>This bean is the project's complete demonstration of the four JavaBeans property kinds
- * (chapter 3):</p>
- * <table border="1">
- *   <caption>Property kinds implemented by this bean</caption>
- *   <tr><th>Kind</th><th>Property</th><th>Mechanism</th></tr>
- *   <tr><td>simple</td><td>{@code entryCount}</td><td>read-only getter derived from the list</td></tr>
- *   <tr><td>bound</td><td>{@code entries}</td><td>{@link PropertyChangeSupport}, including
- *       {@link IndexedPropertyChangeEvent} for single-slot updates</td></tr>
- *   <tr><td>constrained</td><td>{@code maxEntries}</td><td>{@link VetoableChangeSupport} - a
- *       listener may refuse to shrink the history</td></tr>
- *   <tr><td>indexed</td><td>{@code entries}</td><td>{@code getEntries()},
- *       {@code getEntries(int)}, {@code setEntries(QrHistoryEntry[])},
- *       {@code setEntries(int, QrHistoryEntry)}</td></tr>
- * </table>
- */
+/** In-memory history component whose main property is an indexed property. */
 public class QrHistoryBean implements Serializable, BoundPropertySource {
 
     private static final long serialVersionUID = 1L;
@@ -159,13 +142,7 @@ public class QrHistoryBean implements Serializable, BoundPropertySource {
         return maxEntries;
     }
 
-    /**
-     * Constrained property: a listener can veto shrinking the capacity, for example because an
-     * audit process is still reading older entries.
-     *
-     * @param maxEntries new capacity, 1..10000
-     * @throws java.beans.PropertyVetoException when a listener vetoes the change
-     */
+    /** Constrained property: a listener can veto shrinking the capacity, for example because an audit process is still reading older entries. */
     public void setMaxEntries(int maxEntries) throws java.beans.PropertyVetoException {
         if (maxEntries < 1 || maxEntries > 10000) {
             throw new IllegalArgumentException("maxEntries must be 1..10000");

@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * A concrete, wired assembly of components - the "application" in component-oriented terms.
  *
- * <p>An assembly is data, not code: the same class holds the GUI assembly and the HTTP assembly,
+ * <p>An assembly is data, not code: the same class can hold different desktop component selections,
  * and the difference between them lives in the {@link AssemblyProfile} that was used to build
  * it.</p>
  */

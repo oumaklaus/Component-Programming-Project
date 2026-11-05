@@ -52,8 +52,7 @@ public final class QrStudioGuiAssembly {
             frame.setVisible(true);
             if (target != null) {
                 frame.selectRenderer(chosenFormat);
-                frame.setPayload("https://www.ku.ac.ke/sco310  Kenyatta University\n"
-                        + "SCO310 Component Programming - QR generator component suite");
+                frame.setPayload("Kenyatta University");
                 frame.generateNow();
             }
             holder[0] = frame;

@@ -29,7 +29,7 @@ import javax.imageio.ImageIO;
  */
 final class RendererTest {
 
-    private static final String PAYLOAD = "https://www.ku.ac.ke/sco310 - renderer check";
+    private static final String PAYLOAD = "Kenyatta University";
 
     private RendererTest() {
     }
@@ -48,7 +48,7 @@ final class RendererTest {
         int expectedPixels = (symbol.getSize() + 8) * 6;
         harness.checkEquals("renderer.png", "artifact size follows moduleSize and quietZone",
                 expectedPixels, pngArtifact.getWidth());
-        harness.checkEquals("renderer.png", "mime type is published for the HTTP service",
+        harness.checkEquals("renderer.png", "PNG mime type is published",
                 "image/png", pngArtifact.getMimeType());
 
         String decodedFromPng = ZxingVerify.decodePng(pngArtifact.getContent());
